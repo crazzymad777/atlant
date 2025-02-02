@@ -36,7 +36,10 @@ void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 	auto gem = gold.search(req.path);
 	if (gem !is null)
 	{
-		res.writeBody(cast(ubyte[]) gem.data, gem.mime);
+		if (gem.data != null)
+		{
+			res.writeBody(cast(ubyte[]) gem.data, gem.mime);
+		}
 	}
 }
 
