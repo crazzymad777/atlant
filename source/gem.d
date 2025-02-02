@@ -139,12 +139,12 @@ class DirGem : FileGem
 					import std.conv;
 
 					auto flags = "-";
-					auto reqHtml = gem.path;
+					//auto reqHtml = gem.path;
 					auto entry = gem.entry;
 					if (entry.isDir())
 					{
 						flags = "d";
-						reqHtml ~= "/";
+						// reqHtml ~= "/";
 					}
 					if (entry.isSymlink())
 					{
@@ -153,7 +153,7 @@ class DirGem : FileGem
 					contents.put("\x3ctr>\x3ctd>");
 					contents.put(flags);
 					contents.put("\x3c/td>\x3ctd>\x3ca href=\"");
-					contents.put(reqHtml);
+					contents.put(gem.path);
 					contents.put("\">");
 					contents.put(baseName(entry));
 					contents.put("\x3c/a>\x3c/td>\x3ctd>");
