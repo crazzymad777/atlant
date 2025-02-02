@@ -9,21 +9,19 @@ class Bucket
 	{
 		gems = new Gem[capacity];
 	}
-	private bool collision;
+	// private bool collision;
 	private Gem[] gems;
 
 	public void put(Gem newGem)
 	{
-		if (!this.collision)
-		{
-			for (long i = 0; i < length; i++)
-			{
-				if (gems[i].hash == newGem.hash)
-				{
-					this.collision = true;
-				}
-			}
-		}
+        for (long i = 0; i < length; i++)
+        {
+            if (gems[i].hash == newGem.hash)
+            {
+                gems[i].uniqueHash = false;
+                newGem.uniqueHash = false;
+            }
+        }
 
 		gems[length] = newGem;
 		length++;
@@ -33,7 +31,7 @@ class Bucket
 	{
 		import std.stdio;
 		writeln("Bucket #", this.hashOf());
-		writeln("\tHash coliision: ", collision);
+		// writeln("\tHash coliision: ", collision);
 		foreach (x; gems)
 		{
 			if (x !is null)
@@ -45,24 +43,21 @@ class Bucket
 
 	public Gem findByPath(string path, long hash)
 	{
-		if (collision)
-		{
-			for (int i = 0; i < length; i++)
-			{
-				if (gems[i].path == path)
-				{
-					return gems[i];
-				}
-			}
-		}
-
-		for (int i = 0; i < length; i++)
+        int i = 0;
+		for (; i < length; i++)
 		{
 			if (gems[i].hash == hash)
 			{
-				return gems[i];
+                if (gems[i].uniqueHash)
+                {
+                    break;
+				}
+				else if (gems[i].path == path)
+				{
+                    break;
+				}
 			}
 		}
-		return null;
+		return i != length ? gems[i] : null;
 	}
 }

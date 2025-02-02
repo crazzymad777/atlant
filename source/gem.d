@@ -7,6 +7,7 @@ class Gem
 {
 	public this(string reqPath, string fsPath, bool isDir)
 	{
+        uniqueHash = true;
         import std.string: strip;
 		import std.file: exists;
 		this.path = reqPath;
@@ -37,12 +38,13 @@ class Gem
 	public string mime;
 	public ulong reducedHash;
 	public string path;
+	public bool uniqueHash;
 	public ulong hash;
 	void[] data;
 
 	public void analyze()
 	{
 		import std.stdio;
-		writeln("\tGem #", hash, ',', path, ',', mime);
+		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', mime);
 	}
 }
