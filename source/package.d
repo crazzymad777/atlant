@@ -1,3 +1,5 @@
+module atlant;
+
 import std.file: DirEntry, SpanMode, getcwd, dirEntries, read;
 import std.process: environment, execute;
 import std.container.slist;
