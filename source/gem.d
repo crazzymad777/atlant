@@ -99,9 +99,9 @@ class DirGem : FileGem
         import std.string: strip;
 		// index file
 		// TODO: config indices files
-		if (exists(fsPath ~ "/index.html"))
+		if (exists(entry.name ~ "/index.html"))
 		{
-			auto filename = fsPath ~ "/index.html";
+			auto filename = entry.name ~ "/index.html";
 			auto result = execute(["file", "-ibL", filename]);
 			payload.mime = strip(result.output);
 			payload.data = cast(immutable(void)[]) read(filename);
@@ -128,11 +128,7 @@ class DirGem : FileGem
 					contents.put("\x3ctr>\x3ctd>d\x3c/td>\x3ctd>\x3ca href=\"..\">..\x3c/a>\x3c/td>\x3ctd>\x3c/td>\x3ctd>\x3c/td>\x3ctd>\x3c/td>\x3c/tr>");
 				}
 
-				//auto middle = appender!FileGem;
-				//middle.put(files);
 				auto x = chain(subdirectories[], files[]);
-				//SList!FileGem x = (cast(SList!FileGem)subdirectories) ~ ;
-
 				foreach (gem; x)
 				{
 					import std.path: baseName;
@@ -140,12 +136,10 @@ class DirGem : FileGem
 					gem.touch();
 
 					auto flags = "-";
-					//auto reqHtml = gem.path;
 					auto entry = gem.entry;
 					if (entry.isDir())
 					{
 						flags = "d";
-						// reqHtml ~= "/";
 					}
 					if (entry.isSymlink())
 					{
@@ -155,6 +149,7 @@ class DirGem : FileGem
 					{
 						flags ~= "-";
 					}
+
 					contents.put("\x3ctr>\x3ctd>");
 					contents.put(flags);
 					contents.put("\x3c/td>\x3ctd>\x3ca href=\"");
