@@ -37,9 +37,15 @@ class Scanner
 		import std.string: representation;
 		import std.array: appender;
 		auto contents = appender!string;
-		auto directoryGem = new Gem(reqPath, path, true);
+		auto directoryGem = new Gem(reqPath ~ "/", path, true);
+		auto proxyGem = new ProxyGem(directoryGem, reqPath);
+
 		gems.insert(directoryGem);
 		this.counter++;
+		gems.insert(proxyGem);
+		this.counter++;
+
+		reqPath ~= "/";
 
 		if (this.trackDirectories && directoryGem.track)
 		{
@@ -64,7 +70,7 @@ class Scanner
 			Gem gem;
 			if (entry.isDir())
 			{
-				gem = scanDirectory(fullPath, req ~ "/");
+				gem = scanDirectory(fullPath, req);
 			}
 			else
 			{
@@ -118,7 +124,7 @@ class Scanner
 	{
 		gems = SList!Gem();
 		counter = 0;
-		scanDirectory(directory, "/");
+		scanDirectory(directory, "");
 	}
 
 	public HashTable build()

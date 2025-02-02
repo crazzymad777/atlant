@@ -3,15 +3,27 @@ module atlant.gem;
 import std.process: execute;
 import std.file: read;
 
-class Gem
+interface ICutGem
 {
+    immutable(void)[] getData();
+    string getMIME();
+    bool checkDirty();
+}
+
+class Gem : ICutGem
+{
+    private this(string reqPath)
+    {
+        this.path = reqPath;
+		this.hash = object.hashOf(reqPath);
+    }
+
 	public this(string reqPath, string fsPath, bool isDir)
 	{
         uniqueHash = true;
         import std.string: strip;
 		import std.file: exists;
-		this.path = reqPath;
-		this.hash = object.hashOf(reqPath);
+		this(reqPath);
 
 		if (isDir)
 		{
@@ -40,17 +52,58 @@ class Gem
 			data = cast(immutable(void)[]) read(fsPath);
 		}
 	}
-	public string mime;
 	public string path;
 	public bool uniqueHash;
 	public ulong hash;
 	public bool track;
 	public bool dirty;
-	immutable(void)[] data;
+
+	public string mime; // GEM
+	immutable(void)[] data; // GEM
 
 	public void analyze()
 	{
 		import std.stdio;
 		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', mime);
 	}
+
+	immutable(void)[] getData()
+	{
+        return data;
+	}
+
+    string getMIME()
+    {
+        return mime;
+    }
+
+    bool checkDirty()
+    {
+        return dirty;
+    }
+}
+
+class ProxyGem : Gem
+{
+    private Gem link;
+    public this(Gem original, string reqPath)
+    {
+        super(reqPath);
+        link = original;
+    }
+
+    override immutable(void)[] getData()
+	{
+        return link.data;
+	}
+
+    override string getMIME()
+    {
+        return link.mime;
+    }
+
+    override bool checkDirty()
+    {
+        return link.dirty;
+    }
 }
