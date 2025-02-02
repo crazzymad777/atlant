@@ -30,49 +30,59 @@ class CutGem
 	}
 }
 
-class Gem : CutGem
+class FileGem : CutGem
+{
+	private this(string reqPath)
+	{
+		uniqueHash = true;
+		super(reqPath);
+		payload = new GemData();
+	}
+
+	public this(string reqPath, string fsPath, bool isDir)
+	{
+        import std.string: strip;
+		this(reqPath);
+
+		auto result = execute(["file", "-ib", fsPath]);
+		payload.mime = strip(result.output);
+		payload.data = cast(immutable(void)[]) read(fsPath);
+	}
+}
+
+class DirGem : FileGem
 {
 	public this(string reqPath, string fsPath, bool isDir)
 	{
-        uniqueHash = true;
-        import std.string: strip;
 		import std.file: exists;
+        import std.string: strip;
 		super(reqPath);
-		payload = new GemData();
 
-		if (isDir)
+		// index file
+		// TODO: config indices files
+		if (exists(fsPath ~ "/index.html"))
 		{
-			// index file
-			// TODO: config indices files
-			if (exists(fsPath ~ "/index.html"))
-			{
-				auto filename = fsPath ~ "/index.html";
-				auto result = execute(["file", "-ib", filename]);
-				payload.mime = strip(result.output);
-				payload.data = cast(immutable(void)[]) read(filename);
-			}
-			else
-			{
-                /*
-                    Track directory contents by default
-                */
-                payload.dirty = true;
-                track = true;
-			}
+			auto filename = fsPath ~ "/index.html";
+			auto result = execute(["file", "-ib", filename]);
+			payload.mime = strip(result.output);
+			payload.data = cast(immutable(void)[]) read(filename);
 		}
 		else
 		{
-			auto result = execute(["file", "-ib", fsPath]);
-			payload.mime = strip(result.output);
-			payload.data = cast(immutable(void)[]) read(fsPath);
+			/*
+				Track directory contents by default
+			*/
+			payload.dirty = true;
+			track = true;
 		}
 	}
 	public bool track;
 }
 
+
 class ProxyGem : CutGem
 {
-	public this(Gem original, string reqPath)
+	public this(CutGem original, string reqPath)
 	{
 		uniqueHash = true;
 		super(reqPath);

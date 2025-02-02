@@ -32,12 +32,12 @@ class Scanner
 		this.trackDirectories = flag;
 	}
 
-	protected Gem scanDirectory(string path, string reqPath)
+	protected DirGem scanDirectory(string path, string reqPath)
 	{
 		import std.string: representation;
 		import std.array: appender;
 		auto contents = appender!string;
-		auto directoryGem = new Gem(reqPath ~ "/", path, true);
+		auto directoryGem = new DirGem(reqPath ~ "/", path, true);
 		auto proxyGem = new ProxyGem(directoryGem, reqPath);
 
 		gems.insert(directoryGem);
@@ -67,14 +67,14 @@ class Scanner
 			string fullPath = entry.name;
 			string req = reqPath ~ name;
 
-			Gem gem;
+			FileGem gem;
 			if (entry.isDir())
 			{
 				gem = scanDirectory(fullPath, req);
 			}
 			else
 			{
-				gem = new Gem(req, fullPath, false);
+				gem = new FileGem(req, fullPath, false);
 				gems.insert(gem);
 				this.counter++;
 			}

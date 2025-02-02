@@ -6,21 +6,21 @@ class Bucket
 {
 	public this(long capacity)
 	{
-		gems = new Gem[capacity];
+		gems = new CutGem[capacity];
 	}
 	private long length;
 	private CutGem[] gems;
 
 	public void put(CutGem newGem)
 	{
-        for (long i = 0; i < length; i++)
-        {
-            if (gems[i].hash == newGem.hash)
-            {
-                gems[i].uniqueHash = false;
-                newGem.uniqueHash = false;
-            }
-        }
+		for (long i = 0; i < length; i++)
+		{
+			if (gems[i].hash == newGem.hash)
+			{
+				gems[i].uniqueHash = false;
+				newGem.uniqueHash = false;
+			}
+		}
 
 		gems[length] = newGem;
 		length++;
@@ -47,13 +47,13 @@ class Bucket
 		{
 			if (gems[i].hash == hash)
 			{
-                if (gems[i].uniqueHash)
-                {
-                    break;
+				if (gems[i].uniqueHash)
+				{
+					break;
 				}
 				else if (gems[i].path == path)
 				{
-                    break;
+					break;
 				}
 			}
 		}
