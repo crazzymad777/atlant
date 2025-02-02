@@ -7,7 +7,7 @@ import atlant.gem;
 class HashTable
 {
 	public long reducer;
-	public this(long counter, SList!Gem gems)
+	public this(long counter, SList!CutGem gems)
 	{
 		reducer = counter;
 		buckets = new Bucket[reducer];
@@ -49,7 +49,7 @@ class HashTable
 		}
 	}
 
-	public Gem search(string path)
+	public CutGem search(string path)
 	{
 		long hash = object.hashOf(path);
 		long index = hash%reducer;

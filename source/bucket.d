@@ -9,9 +9,9 @@ class Bucket
 		gems = new Gem[capacity];
 	}
 	private long length;
-	private Gem[] gems;
+	private CutGem[] gems;
 
-	public void put(Gem newGem)
+	public void put(CutGem newGem)
 	{
         for (long i = 0; i < length; i++)
         {
@@ -40,7 +40,7 @@ class Bucket
 		}
 	}
 
-	public Gem findByPath(string path, long hash)
+	public CutGem findByPath(string path, long hash)
 	{
         int i = 0;
 		for (; i < length; i++)

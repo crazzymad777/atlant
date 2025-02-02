@@ -46,9 +46,9 @@ void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 	auto gem = gold.search(req.requestURI);
 	if (gem !is null)
 	{
-		if (!gem.checkDirty())
+		if (!gem.payload.dirty)
 		{
-			res.writeBody(cast(ubyte[]) gem.getData(), gem.getMIME());
+			res.writeBody(cast(ubyte[]) gem.payload.data, gem.payload.mime);
 		}
 	}
 }

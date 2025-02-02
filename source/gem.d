@@ -3,14 +3,14 @@ module atlant.gem;
 import std.process: execute;
 import std.file: read;
 
-interface ICutGem
+struct GemData
 {
-    immutable(void)[] getData();
-    string getMIME();
-    bool checkDirty();
+    public string mime;
+	immutable(void)[] data;
+	public bool dirty;
 }
 
-class Gem : ICutGem
+class CutGem
 {
     private this(string reqPath)
     {
@@ -18,12 +18,27 @@ class Gem : ICutGem
 		this.hash = object.hashOf(reqPath);
     }
 
+    public bool uniqueHash;
+	public string path;
+	public ulong hash;
+	public GemData* payload;
+
+	public void analyze()
+	{
+		import std.stdio;
+		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', payload.mime);
+	}
+}
+
+class Gem : CutGem
+{
 	public this(string reqPath, string fsPath, bool isDir)
 	{
         uniqueHash = true;
         import std.string: strip;
 		import std.file: exists;
-		this(reqPath);
+		super(reqPath);
+		payload = new GemData();
 
 		if (isDir)
 		{
@@ -33,77 +48,34 @@ class Gem : ICutGem
 			{
 				auto filename = fsPath ~ "/index.html";
 				auto result = execute(["file", "-ib", filename]);
-				mime = strip(result.output);
-				data = cast(immutable(void)[]) read(filename);
+				payload.mime = strip(result.output);
+				payload.data = cast(immutable(void)[]) read(filename);
 			}
 			else
 			{
                 /*
                     Track directory contents by default
                 */
-                dirty = true;
+                payload.dirty = true;
                 track = true;
 			}
 		}
 		else
 		{
 			auto result = execute(["file", "-ib", fsPath]);
-			mime = strip(result.output);
-			data = cast(immutable(void)[]) read(fsPath);
+			payload.mime = strip(result.output);
+			payload.data = cast(immutable(void)[]) read(fsPath);
 		}
 	}
-	public string path;
-	public bool uniqueHash;
-	public ulong hash;
 	public bool track;
-	public bool dirty;
-
-	public string mime; // GEM
-	immutable(void)[] data; // GEM
-
-	public void analyze()
-	{
-		import std.stdio;
-		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', mime);
-	}
-
-	immutable(void)[] getData()
-	{
-        return data;
-	}
-
-    string getMIME()
-    {
-        return mime;
-    }
-
-    bool checkDirty()
-    {
-        return dirty;
-    }
 }
 
-class ProxyGem : Gem
+class ProxyGem : CutGem
 {
-    private Gem link;
-    public this(Gem original, string reqPath)
-    {
-        super(reqPath);
-        link = original;
-    }
-
-    override immutable(void)[] getData()
+	public this(Gem original, string reqPath)
 	{
-        return link.data;
+		uniqueHash = true;
+		super(reqPath);
+		payload = original.payload;
 	}
-
-    override string getMIME()
-    {
-        return link.mime;
-    }
-
-    override bool checkDirty()
-    {
-        return link.dirty;
-    }
 }

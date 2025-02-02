@@ -9,7 +9,7 @@ class Scanner
 {
 	private bool trackDirectories = false;
 	private string directory;
-	private SList!Gem gems;
+	private SList!CutGem gems;
 	private long counter;
 
 	public long getCounter()
@@ -100,7 +100,7 @@ class Scanner
 				contents.put("\">");
 				contents.put(name);
 				contents.put("</a></td><td>");
-				contents.put(gem.mime);
+				contents.put(gem.payload.mime);
 				contents.put("</td><td>0x");
 				contents.put(to!string(gem.hash, 16));
 				contents.put("</td><td>");
@@ -113,16 +113,16 @@ class Scanner
 		{
 			contents.put("</table></body></html>");
 
-			directoryGem.dirty = false;
-			directoryGem.data = contents.data().representation();
-			directoryGem.mime = "text/html; charset=utf8";
+			directoryGem.payload.dirty = false;
+			directoryGem.payload.data = contents.data().representation();
+			directoryGem.payload.mime = "text/html; charset=utf8";
 		}
 		return directoryGem;
 	}
 
 	public void scan()
 	{
-		gems = SList!Gem();
+		gems = SList!CutGem();
 		counter = 0;
 		scanDirectory(directory, "");
 	}
