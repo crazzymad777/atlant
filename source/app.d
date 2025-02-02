@@ -7,18 +7,30 @@ class Gem
 {
 	public this(string reqPath, string fsPath, bool isDir)
 	{
+		import std.file: exists;
 		this.path = reqPath;
 		this.hash = object.hashOf(reqPath);
 
 		if (isDir)
 		{
 			// index file
+			// TODO: config indices files
+			if (exists(fsPath ~ "/index.html"))
+			{
+				auto filename = fsPath ~ "/index.html";
+				auto result = execute(["file", "-ib", filename]);
+				mime = strip(result.output);
+				data = read(filename);
+			}
+			/*
+				Show directory contents by default?
+			*/
 		}
 		else
 		{
 			import std.string: strip;
 			auto result = execute(["file", "-ib", fsPath]);
-			auto mime = strip(result.output);
+			mime = strip(result.output);
 			data = read(fsPath);
 		}
 	}
@@ -206,17 +218,11 @@ class Scanner
 	{
 		gems = SList!Gem();
 		counter = 0;
+
+		gems.insert(new Gem("/", directory, true));
+		this.counter++;
 		scanDirectory(directory, "/");
 	}
-
-	// public void process()
-	// {
-	// 	import std.stdio;
-	// 	foreach(x; gems)
-	// 	{
-	// 		writeln(x.hash, ',', x.path);
-	// 	}
-	// }
 }
 
 HashTable gold;
@@ -237,7 +243,7 @@ void main()
 	scanner.scan();
 	// scanner.process();
 	gold = new HashTable(scanner.getCounter(), scanner.getGems());
-	gold.kovalskiAnalyze();
+	// gold.kovalskiAnalyze();
 
 	auto port = environment.get("ATLANT_HTTP_PORT", "80");
 	listenHTTP(":" ~ port, &handleRequest);
