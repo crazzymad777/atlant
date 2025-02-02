@@ -1,0 +1,6 @@
+name "atlant"
+description "\"Static web server which load content of directory in RAM\""
+authors "Yuriy Moskoff"
+copyright "Copyright © 2025, Yuriy Moskoff"
+license "BSD-3-Clause-Clear"
+dependency "vibe-d" version="~>0.10.1"

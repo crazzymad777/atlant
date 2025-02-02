@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/atlant
+atlant.so
+atlant.dylib
+atlant.dll
+atlant.a
+atlant.lib
+atlant-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
