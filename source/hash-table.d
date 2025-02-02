@@ -52,11 +52,7 @@ class HashTable
 
 	public Gem search(string path)
 	{
-		import std.stdio;
 		long hash = object.hashOf(path);
-		//writeln(workingDirectory ~ path);
-		//writeln(hash);
-
 		long index = hash%reducer;
 		Bucket bucket = buckets[index];
 		if (bucket is null)

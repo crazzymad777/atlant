@@ -2,6 +2,7 @@ module atlant.scanner;
 
 import std.file: DirEntry, SpanMode, dirEntries;
 import std.container.slist;
+import atlant.hash_table;
 import atlant.gem;
 
 class Scanner
@@ -34,22 +35,24 @@ class Scanner
 			string fullPath = entry.name;
 			string req = reqPath ~ name;
 
-			gems.insert(new Gem(req, fullPath, entry.isDir()));
-			this.counter++;
 			if (entry.isDir())
 			{
 				scanDirectory(fullPath, req ~ "/");
 			}
+			else
+			{
+				gems.insert(new Gem(req, fullPath, false));
+				this.counter++;
+			}
 		}
+		gems.insert(new Gem(reqPath, path, true));
+		this.counter++;
 	}
 
 	public void scan()
 	{
 		gems = SList!Gem();
 		counter = 0;
-
-		gems.insert(new Gem("/", directory, true));
-		this.counter++;
 		scanDirectory(directory, "/");
 	}
 
