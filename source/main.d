@@ -4,7 +4,6 @@ import atlant.gem;
 
 import vibe.vibe;
 
-string workingDirectory;
 HashTable gold;
 
 void main()
@@ -26,7 +25,6 @@ void main()
 		enableDirectoryList = true;
 	}
 
-	workingDirectory = directory;
 	scanner.setDirectoryList(enableDirectoryList);
 	scanner.setDirectory(directory);
 	scanner.scan();
