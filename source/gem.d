@@ -57,7 +57,7 @@ class FileGem : CutGem
 	public void load()
 	{
 		import std.string: strip;
-		auto result = execute(["file", "-ib", fsPath]);
+		auto result = execute(["file", "-ibL", fsPath]);
 		payload.mime = strip(result.output);
 		payload.data = cast(immutable(void)[]) read(fsPath);
 	}
@@ -68,7 +68,7 @@ class FileGem : CutGem
 		if (payload.mime is null)
 		{
 			import std.string: strip;
-			auto result = execute(["file", "-ib", fsPath]);
+			auto result = execute(["file", "-ibL", fsPath]);
 			payload.mime = strip(result.output);
 		}
 	}
@@ -102,7 +102,7 @@ class DirGem : FileGem
 		if (exists(fsPath ~ "/index.html"))
 		{
 			auto filename = fsPath ~ "/index.html";
-			auto result = execute(["file", "-ib", filename]);
+			auto result = execute(["file", "-ibL", filename]);
 			payload.mime = strip(result.output);
 			payload.data = cast(immutable(void)[]) read(filename);
 			payload.dirty = false;
@@ -137,6 +137,7 @@ class DirGem : FileGem
 				{
 					import std.path: baseName;
 					import std.conv;
+					gem.touch();
 
 					auto flags = "-";
 					//auto reqHtml = gem.path;
@@ -148,7 +149,11 @@ class DirGem : FileGem
 					}
 					if (entry.isSymlink())
 					{
-						flags = "l";
+						flags ~= "l";
+					}
+					else
+					{
+						flags ~= "-";
 					}
 					contents.put("\x3ctr>\x3ctd>");
 					contents.put(flags);
