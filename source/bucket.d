@@ -4,12 +4,11 @@ import atlant.gem;
 
 class Bucket
 {
-	private long length;
 	public this(long capacity)
 	{
 		gems = new Gem[capacity];
 	}
-	// private bool collision;
+	private long length;
 	private Gem[] gems;
 
 	public void put(Gem newGem)

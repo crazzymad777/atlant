@@ -52,4 +52,9 @@ class Scanner
 		this.counter++;
 		scanDirectory(directory, "/");
 	}
+
+	public HashTable build()
+	{
+        return new HashTable(this.getCounter(), this.getGems());
+	}
 }

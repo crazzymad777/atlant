@@ -22,18 +22,20 @@ void main()
 	workingDirectory = directory;
 	scanner.setDirectory(directory);
 	scanner.scan();
-	// scanner.process();
-	gold = new HashTable(scanner.getCounter(), scanner.getGems());
-	// gold.kovalskiAnalyze();
+
+	gold = scanner.build();
 
 	auto port = environment.get("ATLANT_HTTP_PORT", "80");
-	listenHTTP(":" ~ port, &handleRequest);
+
+	auto listener = listenHTTP(":" ~ port, &handleRequest);
+	scope (exit) listener.stopListening();
+
 	runApplication();
 }
 
 void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 {
-	auto gem = gold.search(req.path);
+	auto gem = gold.search(req.requestURI);
 	if (gem !is null)
 	{
 		if (gem.data != null)
