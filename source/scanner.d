@@ -51,23 +51,29 @@ class Scanner
 			string fullPath = entry.name;
 			string req = reqPath ~ name;
 
-			if (entry.isDir())
+			try
 			{
-				DirGem child = scanDirectory(fullPath, req);
-				if (this.trackDirectories)
+				if (entry.isDir())
 				{
-					directoryGem.subdirectories.insert(child);
+					DirGem child = scanDirectory(fullPath, req);
+					if (this.trackDirectories)
+					{
+						directoryGem.subdirectories.insert(child);
+					}
+				}
+				else
+				{
+					FileGem gem = new FileGem(req, fullPath, entry);
+					gems.insert(gem);
+					this.counter++;
+					if (this.trackDirectories)
+					{
+						directoryGem.files.insert(gem);
+					}
 				}
 			}
-			else
+			catch (Exception e)
 			{
-				FileGem gem = new FileGem(req, fullPath, entry);
-				gems.insert(gem);
-				this.counter++;
-				if (this.trackDirectories)
-				{
-					directoryGem.files.insert(gem);
-				}
 			}
 		}
 

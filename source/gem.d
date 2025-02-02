@@ -1,5 +1,6 @@
 module atlant.gem;
 
+import std.file: FileException;
 import std.process: execute;
 import std.file: DirEntry;
 import std.file: read;
@@ -10,6 +11,7 @@ struct GemData
 	immutable(void)[] data;
 	public bool dirty;
 	public bool loaded;
+	// public bool forbidden;
 }
 
 class CutGem
@@ -60,7 +62,15 @@ class FileGem : CutGem
 		import std.string: strip;
 		auto result = execute(["file", "-ibL", fsPath]);
 		payload.mime = strip(result.output);
-		payload.data = cast(immutable(void)[]) read(fsPath);
+		try
+		{
+			payload.data = cast(immutable(void)[]) read(fsPath);
+			// payload.dirty = false;
+		}
+		catch (FileException e)
+		{
+			payload.dirty = true;
+		}
 		payload.loaded = true;
 	}
 
@@ -105,8 +115,15 @@ class DirGem : FileGem
 			auto filename = entry.name ~ "/index.html";
 			auto result = execute(["file", "-ibL", filename]);
 			payload.mime = strip(result.output);
-			payload.data = cast(immutable(void)[]) read(filename);
-			payload.dirty = false;
+			try
+			{
+				payload.data = cast(immutable(void)[]) read(filename);
+				payload.dirty = false;
+			}
+			catch (FileException e)
+			{
+				payload.dirty = true;
+			}
 		}
 		else
 		{
