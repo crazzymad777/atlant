@@ -1,24 +1,103 @@
-import std.file: DirEntry, SpanMode, getcwd, dirEntries;
-import std.process: environment;
+import std.file: DirEntry, SpanMode, getcwd, dirEntries, read;
+import std.process: environment, execute;
 import std.container.slist;
 import vibe.vibe;
 
 class Gem
 {
-	public this(string path)
+	public this(string path, bool isDir)
 	{
 		this.path = path;
 		this.hash = object.hashOf(path);
+
+		if (isDir)
+		{
+			// index file
+		}
+		else
+		{
+			import std.string: strip;
+			auto result = execute(["file", "-ib", path]);
+			auto mime = strip(result.output);
+			data = read(path);
+		}
 	}
+	public string mime;
 	public ulong reducedHash;
 	public string path;
 	public ulong hash;
+	void[] data;
+
+	public void analyze()
+	{
+		import std.stdio;
+		writeln("\tGem #", hash, ',', path, ',', mime);
+	}
 }
 
 class Bucket
 {
+	private long length;
+	public this(long capacity)
+	{
+		gems = new Gem[capacity];
+	}
 	private bool collision;
 	private Gem[] gems;
+
+	public void put(Gem newGem)
+	{
+		if (!this.collision)
+		{
+			for (long i = 0; i < length; i++)
+			{
+				if (gems[i].hash == newGem.hash)
+				{
+					this.collision = true;
+				}
+			}
+		}
+
+		gems[length] = newGem;
+		length++;
+	}
+
+	public void analyze()
+	{
+		import std.stdio;
+		writeln("Bucket #", this.hashOf());
+		writeln("\tHash coliision: ", collision);
+		foreach (x; gems)
+		{
+			if (x !is null)
+			{
+				x.analyze();
+			}
+		}
+	}
+
+	public Gem findByPath(string path, long hash)
+	{
+		if (collision)
+		{
+			for (int i = 0; i < length; i++)
+			{
+				if (gems[i].path == path)
+				{
+					return gems[i];
+				}
+			}
+		}
+
+		for (int i = 0; i < length; i++)
+		{
+			if (gems[i].hash == hash)
+			{
+				return gems[i];
+			}
+		}
+		return null;
+	}
 }
 
 class HashTable
@@ -27,8 +106,8 @@ class HashTable
 	public this(long counter, SList!Gem gems)
 	{
 		reducer = counter;
-		buckets = new Bucket[counter];
-		int[] counts = new int[counter];
+		buckets = new Bucket[reducer];
+		int[] counts = new int[reducer];
 		foreach (x; gems)
 		{
 			long index = x.hash % reducer;
@@ -36,47 +115,52 @@ class HashTable
 			counts[index]++;
 		}
 
-		import std.stdio;
-		bool perfect = true;
-		for (int i = 0; i < counter; i++)
+		foreach (x; gems)
 		{
-			if(counts[i] != 1)
+			long index = x.reducedHash;
+			Bucket bucket = buckets[index];
+			if (bucket is null)
 			{
-				perfect = false;
-				break;
+				bucket = new Bucket(counts[index]);
+				buckets[index] = bucket;
 			}
+
+			bucket.put(x);
 		}
-
-		stderr.writeln("The Best Random Access: ", perfect);
-
-		// Bucket bucket = buckets[index];
-		// if (bucket is null)
-		// {
-		// 	bucket = new Bucket();
-		// 	buckets[index] = bucket;
-		// }
-  //
-		// if (!bucket.collision)
-		// {
-		// 	if (bucket.gems !is null)
-		// 	{
-		// 		foreach (y; bucket.gems)
-		// 		{
-		// 			if (y.hash == x.hash)
-		// 			{
-		// 				bucket.collision = true;
-		// 			}
-		// 		}
-		// 	}
-		// }
-  //
-		// auto bucketGems = bucket.gems;
-		// if (bucketGems !is null)
-		// {
-		// 	bucketGems = new Gem[0]();
-		// }
 	}
 	private Bucket[] buckets;
+
+	void kovalskiAnalyze()
+	{
+		import std.stdio;
+		foreach (bucket; buckets)
+		{
+			if (bucket is null)
+			{
+				writeln("(Empty bucket)");
+			}
+			else
+			{
+				bucket.analyze();
+			}
+		}
+	}
+
+	public Gem search(string path)
+	{
+		import std.stdio;
+		long hash = object.hashOf(workingDirectory ~ path);
+		//writeln(workingDirectory ~ path);
+		//writeln(hash);
+
+		long index = hash%reducer;
+		Bucket bucket = buckets[index];
+		if (bucket is null)
+		{
+			return null;
+		}
+		return bucket.findByPath(path, hash);
+	}
 }
 
 class Scanner
@@ -105,7 +189,7 @@ class Scanner
 		foreach(DirEntry entry; dirEntries(path, SpanMode.shallow))
 		{
 			string fullPath = entry.name;
-			gems.insert(new Gem(fullPath));
+			gems.insert(new Gem(fullPath, entry.isDir()));
 			this.counter++;
 			if (entry.isDir())
 			{
@@ -132,6 +216,7 @@ class Scanner
 }
 
 HashTable gold;
+string workingDirectory;
 
 void main()
 {
@@ -143,10 +228,12 @@ void main()
 		directory = getcwd();
 	}
 
+	workingDirectory = directory;
 	scanner.setDirectory(directory);
 	scanner.scan();
 	// scanner.process();
 	gold = new HashTable(scanner.getCounter(), scanner.getGems());
+	gold.kovalskiAnalyze();
 
 	auto port = environment.get("ATLANT_HTTP_PORT", "80");
 	listenHTTP(":" ~ port, &handleRequest);
@@ -155,7 +242,10 @@ void main()
 
 void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 {
-	if (req.path == "/")
-		res.writeBody("Hello, World!");
+	auto gem = gold.search(req.path);
+	if (gem !is null)
+	{
+		res.writeBody(cast(ubyte[]) gem.data, gem.mime);
+	}
 }
 
