@@ -22,17 +22,21 @@ class Gem
 				auto filename = fsPath ~ "/index.html";
 				auto result = execute(["file", "-ib", filename]);
 				mime = strip(result.output);
-				data = read(filename);
+				data = cast(immutable(void)[]) read(filename);
 			}
-			/*
-				Show directory contents by default?
-			*/
+			else
+			{
+                /*
+                    Track directory contents by default
+                */
+                track = true;
+			}
 		}
 		else
 		{
 			auto result = execute(["file", "-ib", fsPath]);
 			mime = strip(result.output);
-			data = read(fsPath);
+			data = cast(immutable(void)[]) read(fsPath);
 		}
 	}
 	public string mime;
@@ -40,7 +44,8 @@ class Gem
 	public string path;
 	public bool uniqueHash;
 	public ulong hash;
-	void[] data;
+	public bool track;
+	immutable(void)[] data;
 
 	public void analyze()
 	{
