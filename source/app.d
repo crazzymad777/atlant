@@ -5,10 +5,10 @@ import vibe.vibe;
 
 class Gem
 {
-	public this(string path, bool isDir)
+	public this(string reqPath, string fsPath, bool isDir)
 	{
-		this.path = path;
-		this.hash = object.hashOf(path);
+		this.path = reqPath;
+		this.hash = object.hashOf(reqPath);
 
 		if (isDir)
 		{
@@ -17,9 +17,9 @@ class Gem
 		else
 		{
 			import std.string: strip;
-			auto result = execute(["file", "-ib", path]);
+			auto result = execute(["file", "-ib", fsPath]);
 			auto mime = strip(result.output);
-			data = read(path);
+			data = read(fsPath);
 		}
 	}
 	public string mime;
@@ -149,7 +149,7 @@ class HashTable
 	public Gem search(string path)
 	{
 		import std.stdio;
-		long hash = object.hashOf(workingDirectory ~ path);
+		long hash = object.hashOf(path);
 		//writeln(workingDirectory ~ path);
 		//writeln(hash);
 
@@ -184,16 +184,20 @@ class Scanner
 		this.directory = directory;
 	}
 
-	protected void scanDirectory(string path)
+	protected void scanDirectory(string path, string reqPath)
 	{
+		import std.path: baseName;
 		foreach(DirEntry entry; dirEntries(path, SpanMode.shallow))
 		{
+			string name = baseName(entry.name);
 			string fullPath = entry.name;
-			gems.insert(new Gem(fullPath, entry.isDir()));
+			string req = reqPath ~ name;
+
+			gems.insert(new Gem(req, fullPath, entry.isDir()));
 			this.counter++;
 			if (entry.isDir())
 			{
-				scanDirectory(fullPath);
+				scanDirectory(fullPath, req ~ "/");
 			}
 		}
 	}
@@ -202,7 +206,7 @@ class Scanner
 	{
 		gems = SList!Gem();
 		counter = 0;
-		scanDirectory(directory);
+		scanDirectory(directory, "/");
 	}
 
 	// public void process()
