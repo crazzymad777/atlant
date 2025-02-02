@@ -41,7 +41,6 @@ class Gem
 		}
 	}
 	public string mime;
-	public ulong reducedHash;
 	public string path;
 	public bool uniqueHash;
 	public ulong hash;

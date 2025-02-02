@@ -15,13 +15,12 @@ class HashTable
 		foreach (x; gems)
 		{
 			long index = x.hash % reducer;
-			x.reducedHash = index;
 			counts[index]++;
 		}
 
 		foreach (x; gems)
 		{
-			long index = x.reducedHash;
+			long index = x.hash % reducer;
 			Bucket bucket = buckets[index];
 			if (bucket is null)
 			{
