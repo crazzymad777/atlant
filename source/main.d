@@ -19,7 +19,15 @@ void main()
 		directory = getcwd();
 	}
 
+	bool enableDirectoryList = false;
+	string valueEnableDirectoryList = environment.get("ATLANT_ENABLE_DIRECTORY_LIST");
+	if (valueEnableDirectoryList == "1" || valueEnableDirectoryList == "y" || valueEnableDirectoryList == "true" || valueEnableDirectoryList == "yes")
+	{
+		enableDirectoryList = true;
+	}
+
 	workingDirectory = directory;
+	scanner.setDirectoryList(enableDirectoryList);
 	scanner.setDirectory(directory);
 	scanner.scan();
 
@@ -38,7 +46,10 @@ void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 	auto gem = gold.search(req.requestURI);
 	if (gem !is null)
 	{
-		res.writeBody(cast(ubyte[]) gem.data, gem.mime);
+		if (!gem.dirty)
+		{
+			res.writeBody(cast(ubyte[]) gem.data, gem.mime);
+		}
 	}
 }
 

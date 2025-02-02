@@ -29,6 +29,7 @@ class Gem
                 /*
                     Track directory contents by default
                 */
+                dirty = true;
                 track = true;
 			}
 		}
@@ -45,6 +46,7 @@ class Gem
 	public bool uniqueHash;
 	public ulong hash;
 	public bool track;
+	public bool dirty;
 	immutable(void)[] data;
 
 	public void analyze()

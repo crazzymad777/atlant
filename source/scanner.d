@@ -7,6 +7,7 @@ import atlant.gem;
 
 class Scanner
 {
+	private bool trackDirectories = false;
 	private string directory;
 	private SList!Gem gems;
 	private long counter;
@@ -26,6 +27,11 @@ class Scanner
 		this.directory = directory;
 	}
 
+	public void setDirectoryList(bool flag)
+	{
+		this.trackDirectories = flag;
+	}
+
 	protected Gem scanDirectory(string path, string reqPath)
 	{
 		import std.string: representation;
@@ -35,7 +41,7 @@ class Scanner
 		gems.insert(directoryGem);
 		this.counter++;
 
-		if (directoryGem.track)
+		if (this.trackDirectories && directoryGem.track)
 		{
 			contents.put("<!doctype html><html><head><title>Atlant ");
 			contents.put(reqPath);
@@ -67,7 +73,7 @@ class Scanner
 				this.counter++;
 			}
 
-			if (directoryGem.track)
+			if (this.trackDirectories && directoryGem.track)
 			{
 				import std.conv;
 				auto flags = "-";
@@ -97,10 +103,11 @@ class Scanner
 			}
 		}
 
-		if (directoryGem.track)
+		if (this.trackDirectories && directoryGem.track)
 		{
 			contents.put("</table></body></html>");
 
+			directoryGem.dirty = false;
 			directoryGem.data = contents.data().representation();
 			directoryGem.mime = "text/html; charset=utf8";
 		}
