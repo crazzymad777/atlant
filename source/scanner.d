@@ -81,11 +81,14 @@ class Scanner
 		scanDirectory(directory, "");
 	}
 
-	public HashTable build()
+	public HashTable build(bool lazyLoad)
 	{
-		foreach (gem; this.getGems())
+		if (!lazyLoad)
 		{
-			gem.load();
+			foreach (gem; this.getGems())
+			{
+				gem.load();
+			}
 		}
 		return new HashTable(this.getCounter(), this.getGems());
 	}

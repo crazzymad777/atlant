@@ -9,6 +9,7 @@ struct GemData
     public string mime;
 	immutable(void)[] data;
 	public bool dirty;
+	public bool loaded;
 }
 
 class CutGem
@@ -60,6 +61,7 @@ class FileGem : CutGem
 		auto result = execute(["file", "-ibL", fsPath]);
 		payload.mime = strip(result.output);
 		payload.data = cast(immutable(void)[]) read(fsPath);
+		payload.loaded = true;
 	}
 
 	override
@@ -87,7 +89,6 @@ class DirGem : FileGem
 	{
 		super(reqPath);
 		this,fsPath = fsPath;
-		payload.dirty = true;
 		this.track = track;
 		this.entry = entry;
 	}
@@ -176,6 +177,7 @@ class DirGem : FileGem
 				payload.dirty = true;
 			}
 		}
+		payload.loaded = true;
 	}
 
 	override
@@ -186,8 +188,10 @@ class DirGem : FileGem
 
 class ProxyGem : CutGem
 {
+	private CutGem link;
 	public this(CutGem original, string reqPath)
 	{
+		link = original;
 		uniqueHash = true;
 		super(reqPath);
 		payload = original.payload;
@@ -196,12 +200,12 @@ class ProxyGem : CutGem
 	override
 	public void load()
 	{
-
+		link.load();
 	}
 
 	override
 	public void touch()
 	{
-
+		link.touch();
 	}
 }
