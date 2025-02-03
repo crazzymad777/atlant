@@ -2,6 +2,8 @@ module atlant.utils.configuration;
 
 struct Configuration
 {
+    bool defaultIndex;
+    string[] index;
     string workingDirectory;
     bool enableDirectoryList; // bool showDirectoryContents;
     bool lazyLoad;
@@ -48,6 +50,19 @@ private void parseOption(Configuration* conf, string pair)
 
         auto newAddrs = split(parts[1]);
         conf.bindAddresses ~= newAddrs;
+        return;
+    }
+
+    if (x == "add_index")
+    {
+        if (conf.defaultIndex)
+        {
+            conf.index = [];
+            conf.defaultIndex = false;
+        }
+
+        auto newIndex = split(parts[1]);
+        conf.index ~= newIndex;
         return;
     }
 
@@ -105,6 +120,18 @@ Configuration defaultConfiguration()
         conf.defaultBindAddresses = false;
     }
     conf.bindAddresses = split(bindAddresses, ',');
+
+    string indexFiles = environment.get("ATLANT_INDEX");
+    if (indexFiles is null)
+    {
+        indexFiles = "index.html,index.htm";
+        conf.defaultIndex = true;
+    }
+    else
+    {
+        conf.defaultIndex = false;
+    }
+    conf.index = split(indexFiles, ',');
     return conf;
 }
 
@@ -118,7 +145,8 @@ void parseArgs(Configuration* conf, string[] args)
         WorkingDirectory,
         Option,
         HttpBindAddress,
-        Port
+        Port,
+        AddIndex
     };
 
     Option next = Option.None;
@@ -154,6 +182,18 @@ void parseArgs(Configuration* conf, string[] args)
                 import std.conv: parse;
                 conf.port = parse!int(args[i]);
             }
+            else if (next == Option.AddIndex)
+            {
+                if (conf.defaultIndex)
+                {
+                    conf.index = [];
+                    conf.defaultIndex = false;
+                }
+
+                auto newIndex = split(args[i]);
+                conf.index ~= newIndex;
+                return;
+            }
 
             next = Option.None;
             nextValue = false;
@@ -163,18 +203,20 @@ void parseArgs(Configuration* conf, string[] args)
         if (args[i] == "--help" || args[i] == "-h")
         {
             writeln("Use: ", baseName(args[0]), " [OPTIONS]");
+            writeln("-a, --add-address - add bind address(-es) comma-separated");
             writeln("-h, --help - show this help message");
             writeln("-l, --lazy - enable lazy mode, cache on request");
-            writeln("-w, --working-directory - set application root directory");
-            writeln("-a, --add-address - add bind address(-es) comma-separated");
             writeln("-p, --port - specify HTTP PORT");
+            writeln("-w, --working-directory - set application root directory");
+            writeln("-x, --add-index - define files which will be used as an index");
             writeln("-o, --option key=value - set option");
             writeln("Available keys:");
-            writeln("override_directory - same as --working-directory");
+            writeln("add_index - same as --add-index");
             writeln("directory_list - show users directory content");
-            writeln("lazy_load - same as --lazy");
             writeln("http_bind - same as --add-address");
             writeln("http_port - same as --port");
+            writeln("lazy_load - same as --lazy");
+            writeln("override_directory - same as --working-directory");
             exit(0);
         }
 
@@ -205,6 +247,12 @@ void parseArgs(Configuration* conf, string[] args)
         {
             nextValue = true;
             next = Option.HttpBindAddress;
+        }
+
+        if (args[i] == "-x" || args[i] == "--add-index")
+        {
+            nextValue = true;
+            next = Option.AddIndex;
         }
     }
 }
