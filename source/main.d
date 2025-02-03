@@ -13,6 +13,7 @@ void main(string[] args)
 
 	auto conf = defaultConfiguration();
 	parseArgs(&conf, args); // break when --help passed
+	setGlobalConfiguration(conf);
 
 	Scanner scanner = new Scanner();
 	scanner.configure(conf);

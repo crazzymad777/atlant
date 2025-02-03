@@ -1,5 +1,7 @@
 module atlant.utils.configuration;
 
+shared Configuration configuration;
+
 struct Configuration
 {
     bool defaultIndex;
@@ -10,6 +12,16 @@ struct Configuration
     string[] bindAddresses;
     bool defaultBindAddresses;
     int port;
+}
+
+public Configuration getGlobalConfiguration()
+{
+    return configuration;
+}
+
+public Configuration setGlobalConfiguration(Configuration conf)
+{
+    configuration = conf;
 }
 
 private void parseOption(Configuration* conf, string pair)
