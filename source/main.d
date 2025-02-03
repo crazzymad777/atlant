@@ -33,7 +33,8 @@ void main(string[] args)
 
 void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 {
-	auto gem = gold.search(req.requestURI);
+	import std.uri;
+	auto gem = gold.search(decode(req.requestURI));
 	if (gem !is null)
 	{
 		if (!gem.payload.dirty)
