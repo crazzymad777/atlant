@@ -11,6 +11,7 @@ class Scanner
 	private string directory;
 	private SList!CutGem gems;
 	private long counter;
+	private bool traverseTree = true;
 
 	public long getCounter()
 	{
@@ -30,6 +31,11 @@ class Scanner
 	public void setDirectoryList(bool flag)
 	{
 		this.trackDirectories = flag;
+	}
+
+	public void setTraverseTreeFlag(bool flag)
+	{
+		this.traverseTree = flag;
 	}
 
 	protected DirGem scanDirectory(string path, string reqPath)
@@ -55,7 +61,22 @@ class Scanner
 			{
 				if (entry.isDir())
 				{
-					DirGem child = scanDirectory(fullPath, req);
+					DirGem child;
+					if (traverseTree)
+					{
+						child = scanDirectory(fullPath, req);
+					}
+					else
+					{
+						child = new DirGem(req ~ "/", fullPath, this.trackDirectories, DirEntry(fullPath));
+						auto d2 = new ProxyGem(child, req);
+
+						gems.insert(child);
+						this.counter++;
+						gems.insert(d2);
+						this.counter++;
+					}
+
 					if (this.trackDirectories)
 					{
 						directoryGem.subdirectories.insert(child);
