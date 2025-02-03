@@ -18,7 +18,14 @@ void main(string[] args)
 	scanner.configure(conf);
 	scanner.scan();
 	gold = scanner.build(conf.lazyLoad);
-	auto listener = listenHTTP(":" ~ to!string(conf.port), &handleRequest);
+
+	HTTPServerSettings settings = new HTTPServerSettings();
+	settings.serverString = "atlant/0.0.1-alpha";
+	settings.disableDistHost = true;
+	settings.bindAddresses = conf.bindAddresses;
+	settings.port = cast(ushort) conf.port;
+
+	auto listener = listenHTTP(settings , &handleRequest);
 	scope (exit) listener.stopListening();
 	runEventLoop();
 }

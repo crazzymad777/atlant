@@ -5,13 +5,17 @@ struct Configuration
     string workingDirectory;
     bool enableDirectoryList; // bool showDirectoryContents;
     bool lazyLoad;
-    int port; // bind addresses...
+    string[] bindAddresses;
+    bool defaultBindAddresses;
+    int port;
 }
 
 private void parseOption(Configuration* conf, string pair)
 {
     import std.array: split;
     import std.uni: toLower;
+    import std.conv;
+
     auto parts = split(pair, '=');
     if (parts.length != 2) return;
 
@@ -31,6 +35,25 @@ private void parseOption(Configuration* conf, string pair)
     if (x == "lazy_load")
     {
         conf.lazyLoad = parseBool(parts[1], conf.lazyLoad);
+        return;
+    }
+
+    if (x == "http_bind")
+    {
+        if (conf.defaultBindAddresses)
+        {
+            conf.bindAddresses = [];
+            conf.defaultBindAddresses = false;
+        }
+
+        auto newAddrs = split(parts[1]);
+        conf.bindAddresses ~= newAddrs;
+        return;
+    }
+
+    if (x == "http_port")
+    {
+        conf.port = parse!int(parts[1]);
         return;
     }
 }
@@ -53,6 +76,7 @@ private bool parseBool(string flag, bool def)
 
 Configuration defaultConfiguration()
 {
+    import std.array: split;
     import std.process: environment;
 	import std.file: getcwd;
 	import std.conv;
@@ -69,17 +93,32 @@ Configuration defaultConfiguration()
 
 	string strPort = environment.get("ATLANT_HTTP_PORT", "80");
     conf.port = parse!int(strPort);
+
+    string bindAddresses = environment.get("ATLANT_HTTP_BIND_ADDRESSES");
+    if (bindAddresses is null)
+    {
+        bindAddresses = "0.0.0.0,::";
+        conf.defaultBindAddresses = true;
+    }
+    else
+    {
+        conf.defaultBindAddresses = false;
+    }
+    conf.bindAddresses = split(bindAddresses, ',');
     return conf;
 }
 
 void parseArgs(Configuration* conf, string[] args)
 {
+    import std.array: split;
     import std.stdio;
     enum Option
     {
         None,
         WorkingDirectory,
-        Option
+        Option,
+        HttpBindAddress,
+        Port
     };
 
     Option next = Option.None;
@@ -99,6 +138,22 @@ void parseArgs(Configuration* conf, string[] args)
             {
                 parseOption(conf, args[i]);
             }
+            else if (next == Option.HttpBindAddress)
+            {
+                if (conf.defaultBindAddresses)
+                {
+                    conf.bindAddresses = [];
+                    conf.defaultBindAddresses = false;
+                }
+
+                auto newAddrs = split(args[i]);
+                conf.bindAddresses ~= newAddrs;
+            }
+            else if (next == Option.Port)
+            {
+                import std.conv: parse;
+                conf.port = parse!int(args[i]);
+            }
 
             next = Option.None;
             nextValue = false;
@@ -111,11 +166,15 @@ void parseArgs(Configuration* conf, string[] args)
             writeln("-h, --help - show this help message");
             writeln("-l, --lazy - enable lazy mode, cache on request");
             writeln("-w, --working-directory - set application root directory");
+            writeln("-a, --add-address - add bind address(-es) comma-separated");
+            writeln("-p, --port - specify HTTP PORT");
             writeln("-o, --option key=value - set option");
             writeln("Available keys:");
             writeln("override_directory - same as --working-directory");
             writeln("directory_list - show users directory content");
             writeln("lazy_load - same as --lazy");
+            writeln("http_bind - same as --add-address");
+            writeln("http_port - same as --port");
             exit(0);
         }
 
@@ -134,6 +193,18 @@ void parseArgs(Configuration* conf, string[] args)
         {
             nextValue = true;
             next = Option.Option;
+        }
+
+        if (args[i] == "-p" || args[i] == "--port")
+        {
+            nextValue = true;
+            next = Option.Port;
+        }
+
+        if (args[i] == "-a" || args[i] == "--add-address")
+        {
+            nextValue = true;
+            next = Option.HttpBindAddress;
         }
     }
 }
