@@ -74,6 +74,7 @@ Configuration defaultConfiguration()
 
 void parseArgs(Configuration* conf, string[] args)
 {
+    import std.stdio;
     enum Option
     {
         None,
@@ -84,6 +85,8 @@ void parseArgs(Configuration* conf, string[] args)
     Option next = Option.None;
     bool nextValue = false;
     import core.stdc.stdlib: exit;
+    import std.path: baseName;
+
     for (int i = 1; i < args.length; i++)
     {
         if (nextValue)
@@ -104,6 +107,15 @@ void parseArgs(Configuration* conf, string[] args)
 
         if (args[i] == "--help" || args[i] == "-h")
         {
+            writeln("Use: ", baseName(args[0]), " [OPTIONS]");
+            writeln("-h, --help - show this help message");
+            writeln("-l, --lazy - enable lazy mode, cache on request");
+            writeln("-w, --working-directory - set application root directory");
+            writeln("-o, --option key=value - set option");
+            writeln("Available keys:");
+            writeln("override_directory - same as --working-directory");
+            writeln("directory_list - show users directory content");
+            writeln("lazy_load - same as --lazy");
             exit(0);
         }
 
