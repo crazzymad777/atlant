@@ -12,7 +12,7 @@ void main(string[] args)
 	import std.conv: to;
 
 	auto conf = defaultConfiguration();
-	parseArgs(&conf, args); // should break when --help passed
+	parseArgs(&conf, args); // break when --help passed
 
 	Scanner scanner = new Scanner();
 	scanner.configure(conf);
