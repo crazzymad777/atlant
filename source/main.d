@@ -20,7 +20,7 @@ void main(string[] args)
 	gold = scanner.build(conf.lazyLoad);
 	auto listener = listenHTTP(":" ~ to!string(conf.port), &handleRequest);
 	scope (exit) listener.stopListening();
-	runApplication();
+	runEventLoop();
 }
 
 void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
