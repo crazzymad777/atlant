@@ -17,6 +17,7 @@ void main(string[] args)
 	Scanner scanner = new Scanner();
 	scanner.configure(conf);
 	scanner.scan();
+	gemConf = &conf; // workaround index files
 	gold = scanner.build(conf.lazyLoad);
 
 	HTTPServerSettings settings = new HTTPServerSettings();
