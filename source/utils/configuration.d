@@ -192,7 +192,6 @@ void parseArgs(Configuration* conf, string[] args)
 
                 auto newIndex = split(args[i]);
                 conf.index ~= newIndex;
-                return;
             }
 
             next = Option.None;
