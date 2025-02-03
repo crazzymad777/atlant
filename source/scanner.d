@@ -1,6 +1,7 @@
 module atlant.scanner;
 
 import std.file: DirEntry, SpanMode, dirEntries;
+import atlant.utils.configuration;
 import std.container.slist;
 import atlant.hash_table;
 import atlant.gem;
@@ -11,6 +12,12 @@ class Scanner
 	private string directory;
 	private SList!CutGem gems;
 	private long counter;
+
+	public void configure(Configuration conf)
+	{
+		setDirectoryList(conf.enableDirectoryList);
+		setDirectory(conf.workingDirectory);
+	}
 
 	public long getCounter()
 	{
