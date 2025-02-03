@@ -8,6 +8,33 @@ struct Configuration
     int port; // bind addresses...
 }
 
+private void parseOption(Configuration* conf, string pair)
+{
+    import std.array: split;
+    import std.uni: toLower;
+    auto parts = split(pair, '=');
+    if (parts.length != 2) return;
+
+    auto x = toLower(parts[0]);
+    if (x == "override_directory")
+    {
+        conf.workingDirectory = parts[1];
+        return;
+    }
+
+    if (x == "directory_list")
+    {
+        conf.enableDirectoryList = parseBool(parts[1], conf.enableDirectoryList);
+        return;
+    }
+
+    if (x == "lazy_load")
+    {
+        conf.lazyLoad = parseBool(parts[1], conf.lazyLoad);
+        return;
+    }
+}
+
 private bool parseBool(string flag, bool def)
 {
     import std.uni: toLower;
@@ -35,7 +62,7 @@ Configuration defaultConfiguration()
 	{
 		conf.workingDirectory = getcwd();
 	}
-    conf.enableDirectoryList = parseBool(environment.get("ATLANT_ENABLE_DIRECTORY_LIST"), false);
+    conf.enableDirectoryList = parseBool(environment.get("ATLANT_DIRECTORY_LIST"), false);
 
 	// Non-cannonical mode
 	conf.lazyLoad = parseBool(environment.get("ATLANT_LAZY_LOAD"), false);
@@ -67,7 +94,7 @@ void parseArgs(Configuration* conf, string[] args)
             }
             else if (next == Option.Option)
             {
-
+                parseOption(conf, args[i]);
             }
 
             next = Option.None;
