@@ -6,58 +6,18 @@ import atlant.gem;
 
 class HashTable
 {
-	public long reducer;
+	private CutGem[string] hashMap;
 	public this(long counter, SList!CutGem gems)
 	{
-		reducer = counter;
-		buckets = new Bucket[reducer];
-		int[] counts = new int[reducer];
 		foreach (x; gems)
 		{
-			long index = x.hash % reducer;
-			counts[index]++;
+			hashMap[x.path] = x;
 		}
-
-		foreach (x; gems)
-		{
-			long index = x.hash % reducer;
-			Bucket bucket = buckets[index];
-			if (bucket is null)
-			{
-				bucket = new Bucket(counts[index]);
-				buckets[index] = bucket;
-			}
-
-			bucket.put(x);
-		}
-	}
-	private Bucket[] buckets;
-
-	void kovalskiAnalyze()
-	{
-		import std.stdio;
-		foreach (bucket; buckets)
-		{
-			if (bucket is null)
-			{
-				writeln("(Empty bucket)");
-			}
-			else
-			{
-				bucket.analyze();
-			}
-		}
+		hashMap.rehash;
 	}
 
 	public CutGem search(string path)
 	{
-		long hash = object.hashOf(path);
-		long index = hash%reducer;
-		Bucket bucket = buckets[index];
-		if (bucket is null)
-		{
-			return null;
-		}
-		return bucket.findByPath(path, hash);
+		return hashMap[path];
 	}
 }
