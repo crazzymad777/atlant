@@ -12,6 +12,11 @@ class HashTable
 		{
 			hashMap[x.path] = x;
 		}
+		rehash();
+	}
+
+	public void rehash()
+	{
 		hashMap.rehash;
 	}
 
