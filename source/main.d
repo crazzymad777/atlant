@@ -31,7 +31,7 @@ void main(string[] args)
 	runEventLoop();
 }
 
-void handleReadyResource(HTTPServerRequest req, HTTPServerResponse res)
+void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 {
 	import std.uri;
 	auto gem = gold.search(decode(req.requestURI));
@@ -54,17 +54,3 @@ void handleReadyResource(HTTPServerRequest req, HTTPServerResponse res)
 		}
 	}
 }
-
-void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
-{
-	import std.array: split;
-	auto parts = split(req.requestURI, '/')[1 .. $];
-	string x = "";
-	foreach (y; parts)
-	{
-		x ~= y;
-		x ~= "$";
-	}
-	res.writeBody(x);
-}
-

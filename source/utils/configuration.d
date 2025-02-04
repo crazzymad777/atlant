@@ -10,6 +10,7 @@ struct Configuration
 	string[] bindAddresses;
 	bool defaultBindAddresses;
 	int port;
+	bool traverseTree = true;
 }
 
 private void parseOption(Configuration* conf, string pair)
@@ -37,6 +38,12 @@ private void parseOption(Configuration* conf, string pair)
 	if (x == "lazy_load")
 	{
 		conf.lazyLoad = parseBool(parts[1], conf.lazyLoad);
+		return;
+	}
+
+	if (x == "traverse_tree")
+	{
+		conf.traverseTree = parseBool(parts[1], conf.traverseTree);
 		return;
 	}
 
@@ -105,6 +112,8 @@ Configuration defaultConfiguration()
 
 	// Non-cannonical mode
 	conf.lazyLoad = parseBool(environment.get("ATLANT_LAZY_LOAD"), false);
+
+	conf.traverseTree = parseBool(environment.get("ATLANT_TRAVERSE_TREE"), true);
 
 	string strPort = environment.get("ATLANT_HTTP_PORT", "80");
 	conf.port = parse!int(strPort);

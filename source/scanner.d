@@ -16,6 +16,7 @@ class Scanner
 
 	public void configure(Configuration conf)
 	{
+		setTraverseTreeFlag(conf.traverseTree);
 		setDirectoryList(conf.enableDirectoryList);
 		setDirectory(conf.workingDirectory);
 	}
