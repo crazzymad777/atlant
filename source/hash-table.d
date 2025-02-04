@@ -1,7 +1,6 @@
 module atlant.hash_table;
 
 import std.container.slist;
-import atlant.bucket;
 import atlant.gem;
 
 class HashTable
