@@ -10,7 +10,7 @@ __gshared Configuration* gemConf;
 
 struct GemData
 {
-    public string mime;
+	public string mime;
 	immutable(void)[] data;
 	public bool dirty;
 	public bool loaded;
@@ -19,13 +19,13 @@ struct GemData
 
 class CutGem
 {
-    private this(string reqPath)
-    {
-        this.path = reqPath;
+	private this(string reqPath)
+	{
+		this.path = reqPath;
 		this.hash = object.hashOf(reqPath);
-    }
+	}
 
-    public bool uniqueHash;
+	public bool uniqueHash;
 	public string path;
 	public ulong hash;
 	public GemData* payload;
@@ -110,7 +110,7 @@ class DirGem : FileGem
 	public void load()
 	{
 		import std.file: exists;
-        import std.string: strip;
+		import std.string: strip;
 		// index file
 		string[] index = gemConf.index;
 		payload.dirty = true;
