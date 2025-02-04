@@ -5,70 +5,36 @@ import atlant.gem;
 import vibe.vibe;
 
 HashTable gold;
-bool treeTraversed = false;
 
-void main()
+void main(string[] args)
 {
-	import std.process: environment;
-	import std.file: getcwd;
+	import atlant.utils.configuration;
+	import std.conv: to;
+
+	auto conf = defaultConfiguration();
+	parseArgs(&conf, args); // break when --help passed
+
 	Scanner scanner = new Scanner();
-
-	auto directory = environment.get("ATLANT_OVERRIDE_DIRECTORY");
-	if (directory is null)
-	{
-		directory = getcwd();
-	}
-
-	bool enableDirectoryList = false;
-	string valueEnableDirectoryList = toLower(environment.get("ATLANT_ENABLE_DIRECTORY_LIST"));
-	if (valueEnableDirectoryList == "1" || valueEnableDirectoryList == "y" || valueEnableDirectoryList == "true" || valueEnableDirectoryList == "yes")
-	{
-		enableDirectoryList = true;
-	}
-
-	// Non-cannonical mode
-	bool lazyLoad = false;
-	string valueLazyLoad = toLower(environment.get("ATLANT_LAZY_LOAD"));
-	if (valueLazyLoad == "1" || valueLazyLoad == "y" || valueLazyLoad == "true" || valueLazyLoad == "yes")
-	{
-		lazyLoad = true;
-	}
-
-	// Traverse Tree
-	bool traverseTree = true;
-	string valueTraverseTree = toLower(environment.get("ATLANT_TRAVERSE_TREE"));
-	if (valueTraverseTree == "0" || valueTraverseTree == "n" || valueTraverseTree == "false" || valueTraverseTree == "no")
-	{
-		traverseTree = false;
-	}
-
-	scanner.setTraverseTreeFlag(traverseTree);
-	scanner.setDirectoryList(enableDirectoryList);
-	scanner.setDirectory(directory);
+	scanner.configure(conf);
 	scanner.scan();
-	treeTraversed = traverseTree;
+	gemConf = &conf; // workaround index files
+	gold = scanner.build(conf.lazyLoad);
 
-	gold = scanner.build(lazyLoad);
+	HTTPServerSettings settings = new HTTPServerSettings();
+	settings.serverString = "atlant/0.0.1-alpha";
+	settings.disableDistHost = true;
+	settings.bindAddresses = conf.bindAddresses;
+	settings.port = cast(ushort) conf.port;
 
-	auto port = environment.get("ATLANT_HTTP_PORT", "80");
-
-	HTTPListener listener;
-	if (treeTraversed)
-	{
-		listener = listenHTTP(":" ~ port, &handleReadyResource);
-	}
-	else
-	{
-		listener = listenHTTP(":" ~ port, &handleRequest);
-	}
+	auto listener = listenHTTP(settings , &handleRequest);
 	scope (exit) listener.stopListening();
-
-	runApplication();
+	runEventLoop();
 }
 
 void handleReadyResource(HTTPServerRequest req, HTTPServerResponse res)
 {
-	auto gem = gold.search(req.requestURI);
+	import std.uri;
+	auto gem = gold.search(decode(req.requestURI));
 	if (gem !is null)
 	{
 		if (!gem.payload.dirty)

@@ -5,9 +5,12 @@ import std.process: execute;
 import std.file: DirEntry;
 import std.file: read;
 
+import atlant.utils.configuration;
+__gshared Configuration* gemConf;
+
 struct GemData
 {
-    public string mime;
+	public string mime;
 	immutable(void)[] data;
 	public bool dirty;
 	public bool loaded;
@@ -16,13 +19,13 @@ struct GemData
 
 class CutGem
 {
-    private this(string reqPath)
-    {
-        this.path = reqPath;
+	private this(string reqPath)
+	{
+		this.path = reqPath;
 		this.hash = object.hashOf(reqPath);
-    }
+	}
 
-    public bool uniqueHash;
+	public bool uniqueHash;
 	public string path;
 	public ulong hash;
 	public GemData* payload;
@@ -107,25 +110,31 @@ class DirGem : FileGem
 	public void load()
 	{
 		import std.file: exists;
-        import std.string: strip;
+		import std.string: strip;
 		// index file
-		// TODO: config indices files
-		if (exists(entry.name ~ "/index.html"))
+		string[] index = gemConf.index;
+		payload.dirty = true;
+		for (int i = 0; i < index.length; i++) //
 		{
-			auto filename = entry.name ~ "/index.html";
-			auto result = execute(["file", "-ibL", filename]);
-			payload.mime = strip(result.output);
-			try
+			if (exists(entry.name ~ "/" ~ index[i]))
 			{
-				payload.data = cast(immutable(void)[]) read(filename);
-				payload.dirty = false;
-			}
-			catch (FileException e)
-			{
-				payload.dirty = true;
+				auto filename = entry.name ~ "/" ~ index[i];
+				auto result = execute(["file", "-ibL", filename]);
+				payload.mime = strip(result.output);
+				try
+				{
+					payload.data = cast(immutable(void)[]) read(filename);
+					payload.dirty = false;
+					break;
+				}
+				catch (FileException e)
+				{
+					payload.dirty = true;
+				}
 			}
 		}
-		else
+
+		if (payload.dirty)
 		{
 			/*
 				Track directory contents by default
