@@ -14,7 +14,7 @@ void main(string[] args)
 	auto conf = defaultConfiguration();
 	parseArgs(&conf, args); // break when --help passed
 
-	Scanner scanner = new Scanner();
+	Scanner scanner = Scanner();
 	scanner.configure(conf);
 	scanner.scan();
 	gemConf = &conf; // workaround index files

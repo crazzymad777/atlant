@@ -6,7 +6,7 @@ import std.container.slist;
 import atlant.hash_table;
 import atlant.gem;
 
-class Scanner
+struct Scanner
 {
 	private bool trackDirectories = false;
 	private string directory;
