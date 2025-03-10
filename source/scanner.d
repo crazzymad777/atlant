@@ -70,7 +70,7 @@ struct Scanner
 				}
 				else
 				{
-					FileGem gem = new FileGem(req, fullPath, entry);
+					FileGem gem = CutGem.fileOf(req, fullPath, entry);
 					gems.insert(gem);
 					this.counter++;
 					if (this.trackDirectories)

@@ -19,6 +19,13 @@ struct GemData
 
 class CutGem
 {
+	enum Type
+	{
+		Directory,
+		File
+	}
+	Type type;
+
 	private this(string reqPath)
 	{
 		this.path = reqPath;
@@ -36,8 +43,18 @@ class CutGem
 		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', payload.mime);
 	}
 
-	abstract public void touch(); // Gentle touch
-	abstract public void load();
+	public void touch() // Gentle touch
+	{
+	}
+
+	public void load()
+	{
+	}
+
+	public static FileGem fileOf(string reqPath, string fsPath, DirEntry entry)
+	{
+		return new FileGem(reqPath, fsPath, entry);
+	}
 }
 
 class FileGem : CutGem
