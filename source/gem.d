@@ -39,12 +39,6 @@ struct CutGem
 	public ulong hash;
 	public GemData* payload;
 
-	public void analyze()
-	{
-		import std.stdio;
-		writeln("\tGem #", hash, ',', path, ',', uniqueHash, ',', payload.mime);
-	}
-
 	public void touch() // Gentle touch
 	{
 		if (type == Type.File)
