@@ -55,6 +55,11 @@ class CutGem
 	{
 		return new FileGem(reqPath, fsPath, entry);
 	}
+
+	public static DirGem directoryOf(string reqPath, string fsPath, bool track, DirEntry entry)
+	{
+		return new DirGem(reqPath, fsPath, track, entry);
+	}
 }
 
 class FileGem : CutGem
