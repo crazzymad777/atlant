@@ -39,7 +39,7 @@ struct Scanner
 		this.trackDirectories = flag;
 	}
 
-	protected DirGem scanDirectory(string path, string reqPath)
+	protected CutGem scanDirectory(string path, string reqPath)
 	{
 		auto directoryGem = CutGem.directoryOf(reqPath ~ "/", path, this.trackDirectories, DirEntry(path));
 		// auto proxyGem = new ProxyGem(directoryGem, reqPath);
@@ -62,7 +62,7 @@ struct Scanner
 			{
 				if (entry.isDir())
 				{
-					DirGem child = scanDirectory(fullPath, req);
+					CutGem child = scanDirectory(fullPath, req);
 					if (this.trackDirectories)
 					{
 						directoryGem.subdirectories.insert(child);
@@ -70,7 +70,7 @@ struct Scanner
 				}
 				else
 				{
-					FileGem gem = CutGem.fileOf(req, fullPath, entry);
+					CutGem gem = CutGem.fileOf(req, fullPath, entry);
 					gems.insert(gem);
 					this.counter++;
 					if (this.trackDirectories)
