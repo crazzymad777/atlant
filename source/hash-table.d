@@ -51,12 +51,12 @@ struct Bucket
 
 struct HashTable
 {
-	private Bucket*[] buckets;
+	private Array!(Bucket*) buckets;
 	public long reducer;
 	public this(long counter, SList!(CutGem*) gems)
 	{
 		reducer = counter;
-		buckets = new Bucket*[reducer];
+		buckets = Array!(Bucket*)(reducer);
 		int[] counts = new int[reducer];
 		foreach (x; gems)
 		{
@@ -67,11 +67,11 @@ struct HashTable
 		foreach (x; gems)
 		{
 			long index = x.hash % reducer;
-			Bucket* bucket = buckets[index];
+			Bucket* bucket = buckets.at(index);
 			if (bucket is null)
 			{
 				bucket = new Bucket(counts[index]);
-				buckets[index] = bucket;
+				buckets.put(index, bucket);
 			}
 
 			bucket.put(x);
@@ -94,7 +94,7 @@ struct HashTable
 
 		long hash = object.hashOf(path);
 		long index = hash%reducer;
-		Bucket* bucket = buckets[index];
+		Bucket* bucket = buckets.at(index);
 		if (bucket is null)
 		{
 			return null;
