@@ -1,29 +1,30 @@
 module atlant.hash_table;
 
 import std.container.slist;
+import atlant.utils.array;
 import atlant.gem;
 
 struct Bucket
 {
 	public this(long capacity)
 	{
-		gems = new CutGem*[capacity];
+		gems = Array!(CutGem*)(capacity);
 	}
 	private long length;
-	private CutGem*[] gems;
+	private Array!(CutGem*) gems;
 
 	public void put(CutGem* newGem)
 	{
 		for (long i = 0; i < length; i++)
 		{
-			if (gems[i].hash == newGem.hash)
+			if (gems.at(i).hash == newGem.hash)
 			{
-				gems[i].uniqueHash = false;
+				gems.at(i).uniqueHash = false;
 				newGem.uniqueHash = false;
 			}
 		}
 
-		gems[length] = newGem;
+		gems.put(length, newGem);
 		length++;
 	}
 
@@ -32,19 +33,19 @@ struct Bucket
 		int i = 0;
 		for (; i < length; i++)
 		{
-			if (gems[i].hash == hash)
+			if (gems.at(i).hash == hash)
 			{
-				if (gems[i].uniqueHash)
+				if (gems.at(i).uniqueHash)
 				{
 					break;
 				}
-				else if (gems[i].path == path)
+				else if (gems.at(i).path == path)
 				{
 					break;
 				}
 			}
 		}
-		return i != length ? gems[i] : null;
+		return i != length ? gems.at(i) : null;
 	}
 }
 
