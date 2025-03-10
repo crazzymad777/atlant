@@ -54,6 +54,10 @@ class FileGem : CutGem
 
 	public this(string reqPath, string fsPath, DirEntry entry)
 	{
+		if (reqPath[reqPath.length-1] != '/')
+		{
+			reqPath ~= '/';
+		}
 		this(reqPath);
 		this.fsPath = fsPath;
 		this.entry = entry;
@@ -209,29 +213,5 @@ class DirGem : FileGem
 	override
 	public void touch()
 	{
-	}
-}
-
-class ProxyGem : CutGem
-{
-	private CutGem link;
-	public this(CutGem original, string reqPath)
-	{
-		link = original;
-		uniqueHash = true;
-		super(reqPath);
-		payload = original.payload;
-	}
-
-	override
-	public void load()
-	{
-		link.load();
-	}
-
-	override
-	public void touch()
-	{
-		link.touch();
 	}
 }

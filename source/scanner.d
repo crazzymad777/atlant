@@ -42,12 +42,12 @@ struct Scanner
 	protected DirGem scanDirectory(string path, string reqPath)
 	{
 		auto directoryGem = new DirGem(reqPath ~ "/", path, this.trackDirectories, DirEntry(path));
-		auto proxyGem = new ProxyGem(directoryGem, reqPath);
+		// auto proxyGem = new ProxyGem(directoryGem, reqPath);
 
 		gems.insert(directoryGem);
 		this.counter++;
-		gems.insert(proxyGem);
-		this.counter++;
+		// gems.insert(proxyGem);
+		// this.counter++;
 
 		reqPath ~= "/";
 

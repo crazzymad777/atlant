@@ -22,6 +22,11 @@ struct HashTable
 
 	public CutGem search(string path)
 	{
+		if (path[path.length-1] != '/')
+		{
+			path ~= '/';
+		}
+
 		auto x = path in hashMap;
 		if (x is null)
 		{
