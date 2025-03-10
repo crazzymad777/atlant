@@ -103,6 +103,6 @@ class Scanner
 				gem.load();
 			}
 		}
-		return new HashTable(this.getCounter(), this.getGems());
+		return HashTable(this.getCounter(), this.getGems());
 	}
 }

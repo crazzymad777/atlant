@@ -3,9 +3,9 @@ module atlant.hash_table;
 import std.container.slist;
 import atlant.gem;
 
-class HashTable
+struct HashTable
 {
-	private CutGem[string] hashMap;
+	CutGem[string] hashMap;
 	public this(long counter, SList!CutGem gems)
 	{
 		foreach (x; gems)
