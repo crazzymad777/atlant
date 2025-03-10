@@ -19,7 +19,7 @@ struct GemData
 
 import std.container.slist;
 
-class CutGem
+struct CutGem
 {
 	enum Type
 	{
@@ -179,7 +179,7 @@ class CutGem
 	private string fsPath;
 	public DirEntry entry;
 
-	public static CutGem fileOf(string reqPath, string fsPath, DirEntry entry)
+	public static CutGem* fileOf(string reqPath, string fsPath, DirEntry entry)
 	{
 		if (reqPath[reqPath.length-1] != '/')
 		{
@@ -195,11 +195,11 @@ class CutGem
 		return gem;
 	}
 
-	public SList!CutGem subdirectories;
-	public SList!CutGem files;
+	public SList!(CutGem*) subdirectories;
+	public SList!(CutGem*) files;
 	private bool track;
 
-	public static CutGem directoryOf(string reqPath, string fsPath, bool track, DirEntry entry)
+	public static CutGem* directoryOf(string reqPath, string fsPath, bool track, DirEntry entry)
 	{
 		auto gem = new CutGem(reqPath);
 		gem.uniqueHash = true;

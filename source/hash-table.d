@@ -5,8 +5,8 @@ import atlant.gem;
 
 struct HashTable
 {
-	CutGem[string] hashMap;
-	public this(long counter, SList!CutGem gems)
+	CutGem*[string] hashMap;
+	public this(long counter, SList!(CutGem*) gems)
 	{
 		foreach (x; gems)
 		{
@@ -20,7 +20,7 @@ struct HashTable
 		hashMap.rehash;
 	}
 
-	public CutGem search(string path)
+	public CutGem* search(string path)
 	{
 		if (path[path.length-1] != '/')
 		{
