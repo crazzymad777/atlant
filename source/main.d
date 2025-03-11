@@ -2,14 +2,11 @@ import atlant.hash_table;
 import atlant.scanner;
 import atlant.gem;
 
-import vibe.vibe;
-
 HashTable gold;
 
 void main(string[] args)
 {
 	import atlant.utils.configuration;
-	import std.conv: to;
 
 	auto conf = defaultConfiguration();
 	parseArgs(&conf, args); // break when --help passed
@@ -20,6 +17,7 @@ void main(string[] args)
 	gemConf = &conf; // workaround index files
 	gold = scanner.build(conf.lazyLoad);
 
+/+
 	HTTPServerSettings settings = new HTTPServerSettings();
 	settings.serverString = "atlant/0.0.1-alpha";
 	settings.disableDistHost = true;
@@ -29,8 +27,10 @@ void main(string[] args)
 	auto listener = listenHTTP(settings , &handleRequest);
 	scope (exit) listener.stopListening();
 	runEventLoop();
++/
 }
 
+/+
 void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 {
 	import std.uri;
@@ -53,5 +53,5 @@ void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
 			}
 		}
 	}
-}
+}+/
 
