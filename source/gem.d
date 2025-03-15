@@ -1,10 +1,10 @@
 module atlant.gem;
 
-import std.process: execute;
 import std.file: DirEntry;
 import std.file: read;
 
 import atlant.utils.configuration;
+import atlant.utils.filesystem;
 __gshared Configuration* gemConf;
 
 struct GemData
@@ -44,9 +44,7 @@ struct CutGem
 		{
 			if (payload.mime is null)
 			{
-				import std.string: strip;
-				auto result = execute(["file", "-ibL", fsPath]);
-				payload.mime = strip(result.output);
+				payload.mime = get_file_mime(fsPath);
 			}
 		}
 	}
@@ -55,9 +53,7 @@ struct CutGem
 	{
 		if (type == Type.File)
 		{
-			import std.string: strip;
-			auto result = execute(["file", "-ibL", fsPath]);
-			payload.mime = strip(result.output);
+			payload.mime = get_file_mime(fsPath);
 			// try
 			// {
 				payload.data = cast(immutable(void)[]) read(fsPath);
@@ -81,8 +77,7 @@ struct CutGem
 				if (exists(entry.name ~ "/" ~ index[i]))
 				{
 					auto filename = entry.name ~ "/" ~ index[i];
-					auto result = execute(["file", "-ibL", filename]);
-					payload.mime = strip(result.output);
+					payload.mime = get_file_mime(filename);
 					// try
 					// {
 						payload.data = cast(immutable(void)[]) read(filename);
