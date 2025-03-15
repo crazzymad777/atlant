@@ -7,6 +7,7 @@ HashTable gold;
 void main(string[] args)
 {
 	import atlant.utils.configuration;
+	import atlant.http.server;
 
 	auto conf = defaultConfiguration();
 	parseArgs(&conf, args); // break when --help passed
@@ -17,6 +18,11 @@ void main(string[] args)
 	gemConf = &conf; // workaround index files
 	gold = scanner.build(conf.lazyLoad);
 
+	Server server;
+	server.listen();
+
+	import core.stdc.stdio;
+	printf("Server successfully had finished.\n");
 /+
 	HTTPServerSettings settings = new HTTPServerSettings();
 	settings.serverString = "atlant/0.0.1-alpha";

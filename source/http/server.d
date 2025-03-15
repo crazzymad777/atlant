@@ -1,5 +1,12 @@
 module atlant.http.server;
 
+extern(C) void* run(void* data)
+{
+    ServerInstance* instance = cast(ServerInstance*) data;
+    instance.listen();
+    return null;
+}
+
 struct ServerInstance
 {
     private int sockfd = -1;
@@ -42,6 +49,8 @@ struct Server
 
     void listen()
     {
-        instance.listen();
+        import atlant.utils.thread;
+        Thread thread = Thread(&run, cast(void*) &instance);
+        thread.join();
     }
 }
