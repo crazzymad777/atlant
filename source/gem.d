@@ -67,14 +67,12 @@ struct CutGem
 		}
 		else if (type == Type.Directory)
 		{
-			import std.file: exists;
-			import std.string: strip;
 			// index file
 			string[] index = gemConf.index;
 			payload.dirty = true;
 			for (int i = 0; i < index.length; i++) //
 			{
-				if (exists(entry.name ~ "/" ~ index[i]))
+				if (fexists(entry.name ~ "/" ~ index[i]))
 				{
 					auto filename = entry.name ~ "/" ~ index[i];
 					payload.mime = get_file_mime(filename);
