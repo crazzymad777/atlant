@@ -1,6 +1,5 @@
 module atlant.gem;
 
-import std.file: FileException;
 import std.process: execute;
 import std.file: DirEntry;
 import std.file: read;
@@ -59,15 +58,15 @@ struct CutGem
 			import std.string: strip;
 			auto result = execute(["file", "-ibL", fsPath]);
 			payload.mime = strip(result.output);
-			try
-			{
+			// try
+			// {
 				payload.data = cast(immutable(void)[]) read(fsPath);
 				// payload.dirty = false;
-			}
-			catch (FileException e)
-			{
-				payload.dirty = true;
-			}
+			// }
+			// catch (FileException e)
+			// {
+			// 	payload.dirty = true;
+			// }
 			payload.loaded = true;
 		}
 		else if (type == Type.Directory)
@@ -84,16 +83,16 @@ struct CutGem
 					auto filename = entry.name ~ "/" ~ index[i];
 					auto result = execute(["file", "-ibL", filename]);
 					payload.mime = strip(result.output);
-					try
-					{
+					// try
+					// {
 						payload.data = cast(immutable(void)[]) read(filename);
 						payload.dirty = false;
-						break;
-					}
-					catch (FileException e)
-					{
-						payload.dirty = true;
-					}
+						// break;
+					// }
+					// catch (FileException e)
+					// {
+						//payload.dirty = true;
+					// }
 				}
 			}
 

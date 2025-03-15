@@ -58,30 +58,30 @@ struct Scanner
 			string fullPath = entry.name;
 			string req = reqPath ~ name;
 
-			try
+			// try
+			// {
+			if (entry.isDir())
 			{
-				if (entry.isDir())
+				CutGem* child = scanDirectory(fullPath, req);
+				if (this.trackDirectories)
 				{
-					CutGem* child = scanDirectory(fullPath, req);
-					if (this.trackDirectories)
-					{
-						directoryGem.subdirectories.insert(child);
-					}
-				}
-				else
-				{
-					CutGem* gem = CutGem.fileOf(req, fullPath, entry);
-					gems.insert(gem);
-					this.counter++;
-					if (this.trackDirectories)
-					{
-						directoryGem.files.insert(gem);
-					}
+					directoryGem.subdirectories.insert(child);
 				}
 			}
-			catch (Exception e)
+			else
 			{
+				CutGem* gem = CutGem.fileOf(req, fullPath, entry);
+				gems.insert(gem);
+				this.counter++;
+				if (this.trackDirectories)
+				{
+					directoryGem.files.insert(gem);
+				}
 			}
+			// }
+			// catch (Exception e)
+			// {
+			// }
 		}
 
 		return directoryGem;

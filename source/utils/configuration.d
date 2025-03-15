@@ -15,13 +15,13 @@ struct Configuration
 private void parseOption(Configuration* conf, string pair)
 {
 	import std.array: split;
-	import std.uni: toLower;
+	//import std.uni: toLower;
 	import std.conv;
 
 	auto parts = split(pair, '=');
 	if (parts.length != 2) return;
 
-	auto x = toLower(parts[0]);
+	auto x = parts[0];//toLower(parts[0]);
 	if (x == "override_directory")
 	{
 		conf.workingDirectory = parts[1];
@@ -75,8 +75,8 @@ private void parseOption(Configuration* conf, string pair)
 
 private bool parseBool(string flag, bool def)
 {
-	import std.uni: toLower;
-	flag = toLower(flag);
+	//import std.uni: toLower;
+	//flag = toLower(flag);
 	if (flag == "1" || flag == "y" || flag == "true" || flag == "yes" || flag == "t")
 	{
 		return true;
