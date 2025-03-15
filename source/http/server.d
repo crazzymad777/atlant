@@ -1,9 +1,9 @@
 module atlant.http.server;
 
-extern(C) void* run(void* data)
+extern(C) void* run_server_instance(void* data)
 {
     ServerInstance* instance = cast(ServerInstance*) data;
-    instance.listen();
+    instance.serve();
     return null;
 }
 
@@ -11,11 +11,14 @@ struct ServerInstance
 {
     private int sockfd = -1;
 
-    void listen()
+    void serve()
     {
+        import core.sys.linux.errno;
+
         import core.sys.posix.netinet.in_;
         import core.sys.posix.sys.socket;
         import core.sys.posix.unistd;
+
         sockaddr_in servaddr;
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
@@ -31,15 +34,35 @@ struct ServerInstance
         {
             return;
         }
-    }
 
-    ~this()
-    {
-        import core.sys.posix.unistd;
-        if (sockfd > 0)
+        if ((listen(sockfd, 0)) != 0)
         {
-            close(sockfd);
+            return;
         }
+
+        while (true)
+        {
+            int conn = accept(sockfd, null, null);
+            if (conn == -1)
+            {
+                if (conn == EAGAIN || conn == EWOULDBLOCK || conn == ECONNABORTED || conn == EMFILE || conn == ENFILE || conn == ENOBUFS || conn == ENOMEM || conn == EPERM || conn == EPROTO)
+                {
+                    continue;
+                }
+
+                break;
+            }
+            else
+            {
+                import atlant.http.session;
+                Session session = Session(conn);
+                session.fork();
+            }
+        }
+
+        close(sockfd);
+
+        // join here session threads...
     }
 }
 
@@ -50,7 +73,7 @@ struct Server
     void listen()
     {
         import atlant.utils.thread;
-        Thread thread = Thread(&run, cast(void*) &instance);
+        Thread thread = Thread(&run_server_instance, cast(void*) &instance);
         thread.join();
     }
 }
