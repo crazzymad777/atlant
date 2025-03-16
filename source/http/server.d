@@ -13,11 +13,11 @@ struct ServerInstance
 
     void serve()
     {
-        import core.sys.linux.errno;
-
         import core.sys.posix.netinet.in_;
         import core.sys.posix.sys.socket;
         import core.sys.posix.unistd;
+
+        import core.stdc.errno;
 
         sockaddr_in servaddr;
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -45,7 +45,7 @@ struct ServerInstance
             int conn = accept(sockfd, null, null);
             if (conn == -1)
             {
-                if (conn == EAGAIN || conn == EWOULDBLOCK || conn == ECONNABORTED || conn == EMFILE || conn == ENFILE || conn == ENOBUFS || conn == ENOMEM || conn == EPERM || conn == EPROTO)
+                if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ECONNABORTED || errno == EMFILE || errno == ENFILE || errno == ENOBUFS || errno == ENOMEM || errno == EPERM || errno == EPROTO)
                 {
                     continue;
                 }
