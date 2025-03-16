@@ -62,6 +62,6 @@ Response handleRequest(Request req)
 			}
 		}
 	}
-	return Response(200, ['h'], "text/plain");
+	return Response(404, cast(ubyte[]) ("Resource " ~ req.path ~ " Not Found"), "text/plain");
 }
 
