@@ -66,6 +66,7 @@ struct Parser
                         {
                             if (header == HeaderField.CONNECTION)
                             {
+                                import core.stdc.string;
                                 memory[index] = '\0';
                                 if (strcmp(memory.ptr, "closed".ptr) == 0)
                                 {
@@ -85,6 +86,7 @@ struct Parser
             }
             else if (chunk.buffer[i] == ':')
             {
+                import core.stdc.string;
                 memory[index] = '\0';
                 if (strcmp(memory.ptr, "Connection".ptr) == 0)
                 {
