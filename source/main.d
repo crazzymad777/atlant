@@ -21,7 +21,7 @@ void main(string[] args)
 	gold = scanner.build(conf.lazyLoad);
 
 	Server server;
-	server.listen();
+	server.listen(conf.port);
 
 	import core.stdc.stdio;
 	printf("Server successfully had finished.\n");

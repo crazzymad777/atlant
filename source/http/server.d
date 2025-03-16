@@ -10,6 +10,7 @@ extern(C) void* run_server_instance(void* data)
 struct ServerInstance
 {
     private int sockfd = -1;
+    int port;
 
     void serve()
     {
@@ -31,7 +32,7 @@ struct ServerInstance
 
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-        servaddr.sin_port = htons(8080);
+        servaddr.sin_port = htons(cast(ushort) port);
 
         if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
         {
@@ -77,9 +78,10 @@ struct Server
 {
     ServerInstance instance;
 
-    void listen()
+    void listen(int port)
     {
         import atlant.utils.thread;
+        instance.port = port;
         Thread thread = Thread(&run_server_instance, cast(void*) &instance);
         thread.join();
     }
