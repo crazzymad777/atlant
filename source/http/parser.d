@@ -121,8 +121,6 @@ struct Parser
                 }
                 else if (item == Item.Path)
                 {
-                    memory[index] = '\0';
-                    index++;
                     current.path = memory[0..index].dup;
 
                     item = Item.HttpVersion;

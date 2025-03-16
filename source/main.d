@@ -1,8 +1,10 @@
+module atlant.main;
+
 import atlant.hash_table;
 import atlant.scanner;
 import atlant.gem;
 
-HashTable gold;
+__gshared HashTable gold;
 
 void main(string[] args)
 {
@@ -40,6 +42,7 @@ import atlant.http.parser;
 
 Response handleRequest(Request req)
 {
+	import core.stdc.stdio;
 	import std.uri;
 	auto gem = gold.search(decode(req.path));
 	if (gem !is null)
@@ -59,6 +62,6 @@ Response handleRequest(Request req)
 			}
 		}
 	}
-	return Response(404, [], "text/plain");
+	return Response(200, ['h'], "text/plain");
 }
 

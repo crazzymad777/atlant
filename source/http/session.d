@@ -43,11 +43,34 @@ struct Session
                 chunk.length = status;
                 int count = parser.feed(&chunk);
 
-                string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                //
+                // for (int i = 0; i < count; i++)
+                // {
+                //     import std.string;
+                //     send(sockfd, toStringz(stub), stub.length, 0);
+                // }
+                import atlant.main;
+                bool keepAlive = true;
                 for (int i = 0; i < count; i++)
                 {
+                    import std.conv: to;
                     import std.string;
+                    Request req = parser.requests.front();
+                    parser.requests.removeFront();
+                    Response res = handleRequest(req);
+                    string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: " ~ res.mime ~ "\r\nContent-Length: " ~ to!string(res.body.length) ~ "\r\n\r\n";
+                    //string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                    if (req.method == HttpMethod.GET)
+                    {
+                        stub ~= res.body;
+                    }
                     send(sockfd, toStringz(stub), stub.length, 0);
+                    keepAlive &= req.keepAlive;
+                }
+
+                if (!keepAlive)
+                {
+                    break;
                 }
             }
             else if (status == 0)
