@@ -18,6 +18,7 @@ struct Parser
         Path,
         HttpVersion,
         Header,
+        HeaderSemicolon,
         HeaderValue
     }
     int index;
@@ -35,6 +36,15 @@ struct Parser
                 {
                     if (memory[index-1] == '\r')
                     {
+                        if (item == Item.Header)
+                        {
+                            item = Item.Method;
+                            count++;
+                        }
+                        else
+                        {
+                            item = Item.Header;
+                        }
                         index = 0;
                     }
                 }
@@ -44,7 +54,22 @@ struct Parser
             }
             else if (chunk.buffer[i] == ' ')
             {
+                if (item == Item.Method)
+                {
+                    item = Item.Path;
+                    index = 0;
+                }
+                else if if (item == Item.Path)
+                {
+                    item = Item.HttpVersion;
+                    index = 0;
+                }
 
+                if (item == Item.HeaderSemicolon)
+                {
+                    item = Item.HeaderValue;
+                    index = 0;
+                }
             }
             else
             {
