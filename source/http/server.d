@@ -63,7 +63,7 @@ struct ServerInstance
             {
                 import atlant.http.session;
                 Session session = Session(conn);
-                session.fork();
+                session.fork().detach();
             }
         }
 

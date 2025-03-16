@@ -16,4 +16,9 @@ struct Thread
     {
         return pthread_join(thread, null);
     }
+
+    int detach()
+    {
+        return pthread_detach(thread);
+    }
 }
