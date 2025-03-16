@@ -3,6 +3,14 @@ module atlant.http.parser;
 import atlant.http.session;
 import atlant.http.chunk;
 
+import std.container : DList;
+
+enum HeaderField
+{
+    UNKNOWN,
+    CONNECTION
+}
+
 struct Request
 {
     HttpMethod method;
@@ -21,9 +29,13 @@ struct Parser
         HeaderSemicolon,
         HeaderValue
     }
+
+    DList!Request requests;
     int index;
     char[1024] memory;
     private Item item = Item.Method;
+    private Request current;
+    private HeaderField header;
 
     int feed(Chunk* chunk)
     {
@@ -39,10 +51,32 @@ struct Parser
                         if (item == Item.Header)
                         {
                             item = Item.Method;
+                            // import core.stdc.stdio;
+                            // if (current.method == HttpMethod.GET) printf("GET");
+                            // else if (current.method == HttpMethod.HEAD) printf("HEAD");
+                            // else printf("OTHERWISE");
+                            //
+                            // printf(" %s\n", current.path.ptr);
+
+                            requests.insertBack(current);
+                            current = Request();
                             count++;
                         }
                         else
                         {
+                            if (header == HeaderField.CONNECTION)
+                            {
+                                memory[index] = '\0';
+                                if (strcmp(memory.ptr, "closed".ptr) == 0)
+                                {
+                                    current.keepAlive = false;
+                                }
+                                else if (strcmp(memory.ptr, "keep-alive".ptr) == 0)
+                                {
+                                    current.keepAlive = true;
+                                }
+                            }
+                            header = HeaderField.UNKNOWN;
                             item = Item.Header;
                         }
                         index = 0;
@@ -51,17 +85,37 @@ struct Parser
             }
             else if (chunk.buffer[i] == ':')
             {
+                memory[index] = '\0';
+                if (strcmp(memory.ptr, "Connection".ptr) == 0)
+                {
+                    header = HeaderField.CONNECTION;
+                }
                 item = Item.HeaderSemicolon;
             }
             else if (chunk.buffer[i] == ' ')
             {
                 if (item == Item.Method)
                 {
+                    import core.stdc.string;
                     item = Item.Path;
+                    memory[index] = '\0';
+
+                    if (strcmp(memory.ptr, "HEAD".ptr) == 0)
+                    {
+                        current.method = HttpMethod.HEAD;
+                    }
+                    else if (strcmp(memory.ptr, "GET".ptr) == 0)
+                    {
+                        current.method = HttpMethod.GET;
+                    }
                     index = 0;
                 }
                 else if (item == Item.Path)
                 {
+                    memory[index] = '\0';
+                    index++;
+                    current.path = memory[0..index].dup;
+
                     item = Item.HttpVersion;
                     index = 0;
                 }
