@@ -17,12 +17,15 @@ struct ServerInstance
         import core.sys.posix.sys.socket;
         import core.sys.posix.unistd;
 
+        import core.stdc.string;
+        import core.stdc.stdio;
         import core.stdc.errno;
 
         sockaddr_in servaddr;
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
+            printf("socket failed: %s, %d\n", strerror(errno), errno);
             return;
         }
 
@@ -32,11 +35,13 @@ struct ServerInstance
 
         if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
         {
+            printf("bind failed: %s, %d\n", strerror(errno), errno);
             return;
         }
 
         if ((listen(sockfd, 0)) != 0)
         {
+            printf("listen failed: %s, %d\n", strerror(errno), errno);
             return;
         }
 
@@ -49,6 +54,8 @@ struct ServerInstance
                 {
                     continue;
                 }
+
+                printf("accept break: %s, %d\n", strerror(errno), errno);
 
                 break;
             }

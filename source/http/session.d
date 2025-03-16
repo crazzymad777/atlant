@@ -44,8 +44,6 @@ struct Session
                 int count = parser.feed(&chunk);
 
                 string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
-                import core.stdc.stdio;
-                printf("%d , %lu\n", count, stub.length);
                 for (int i = 0; i < count; i++)
                 {
                     import std.string;
