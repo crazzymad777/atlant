@@ -41,7 +41,13 @@ struct Session
             if (status > 0)
             {
                 chunk.length = status;
-                parser.feed(&chunk);
+                int count = parser.feed(&chunk);
+
+                auto stub = "HTTP/1.1 200 OK\r\nServer: atlant-0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                for (int i = 0; i < count; i++)
+                {
+                    send(sockfd, &stub, stub.length, 0);
+                }
             }
             else if (status == 0)
             {

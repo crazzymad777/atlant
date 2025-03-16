@@ -51,6 +51,7 @@ struct Parser
             }
             else if (chunk.buffer[i] == ':')
             {
+                item = Item.HeaderSemicolon;
             }
             else if (chunk.buffer[i] == ' ')
             {
@@ -59,7 +60,7 @@ struct Parser
                     item = Item.Path;
                     index = 0;
                 }
-                else if if (item == Item.Path)
+                else if (item == Item.Path)
                 {
                     item = Item.HttpVersion;
                     index = 0;
