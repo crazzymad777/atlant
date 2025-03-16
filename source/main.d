@@ -36,28 +36,29 @@ void main(string[] args)
 +/
 }
 
-/+
-void handleRequest(HTTPServerRequest req, HTTPServerResponse res)
+import atlant.http.parser;
+
+Response handleRequest(Request req)
 {
 	import std.uri;
-	auto gem = gold.search(decode(req.requestURI));
+	auto gem = gold.search(decode(req.path));
 	if (gem !is null)
 	{
 		if (!gem.payload.dirty)
 		{
 			if (gem.payload.loaded)
 			{
-				res.writeBody(cast(ubyte[]) gem.payload.data, gem.payload.mime);
-				return;
+				return Response(200, cast(ubyte[]) gem.payload.data, gem.payload.mime);
 			}
 
 			gem.load();
 			// we need to check dirty flag
 			if (!gem.payload.dirty)
 			{
-				res.writeBody(cast(ubyte[]) gem.payload.data, gem.payload.mime);
+				return Response(200, cast(ubyte[]) gem.payload.data, gem.payload.mime);
 			}
 		}
 	}
-}+/
+	return Response(404, [], "text/plain");
+}
 

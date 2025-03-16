@@ -18,6 +18,13 @@ struct Request
     bool keepAlive;
 }
 
+struct Response
+{
+    int status;
+    ubyte[] body;
+    string mime;
+}
+
 struct Parser
 {
     private enum Item
