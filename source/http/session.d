@@ -28,14 +28,16 @@ struct Session
 
     void serve()
     {
+        import core.stdc.stdio;
         import core.sys.posix.unistd;
         import atlant.http.chunk;
         import core.stdc.errno;
 
         Chunk chunk;
-        chunk.length = chunk.buffer.sizeof;
+        // chunk.length = chunk.buffer.sizeof;
         while (true)
         {
+            chunk.length = chunk.buffer.sizeof;
             import core.sys.posix.sys.socket;
             long status = recv(sockfd, &chunk.buffer, chunk.length, 0);
             if (status > 0)
@@ -60,9 +62,13 @@ struct Session
                     Response res = handleRequest(req);
                     string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: " ~ res.mime ~ "\r\nContent-Length: " ~ to!string(res.body.length) ~ "\r\n\r\n";
                     //string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
-                    if (req.method == HttpMethod.GET)
+                    if (req.method != HttpMethod.HEAD)
                     {
                         stub ~= res.body;
+                    }
+                    else
+                    {
+                        printf("HEAD\n");
                     }
                     send(sockfd, toStringz(stub), stub.length, 0);
                     keepAlive &= req.keepAlive;
@@ -70,6 +76,7 @@ struct Session
 
                 if (!keepAlive)
                 {
+                    printf("DO NOT KEEP CONNECTION\n");
                     break;
                 }
             }

@@ -46,9 +46,11 @@ struct Parser
 
     int feed(Chunk* chunk)
     {
+        import core.stdc.stdio;
         int count = 0;
         for (int i = 0; i < chunk.length; i++)
         {
+            putchar(chunk.buffer[i]);
             if (chunk.buffer[i] == '\n')
             {
                 if (index > 0)
@@ -69,12 +71,12 @@ struct Parser
                             current = Request();
                             count++;
                         }
-                        else
+                        else if (item == Item.HeaderValue)
                         {
                             if (header == HeaderField.CONNECTION)
                             {
                                 import core.stdc.string;
-                                memory[index] = '\0';
+                                memory[index-1] = '\0';
                                 if (strcmp(memory.ptr, "closed".ptr) == 0)
                                 {
                                     current.keepAlive = false;
@@ -87,19 +89,26 @@ struct Parser
                             header = HeaderField.UNKNOWN;
                             item = Item.Header;
                         }
+                        else if (item == Item.HttpVersion)
+                        {
+                            item = Item.Header;
+                        }
                         index = 0;
                     }
                 }
             }
             else if (chunk.buffer[i] == ':')
             {
-                import core.stdc.string;
-                memory[index] = '\0';
-                if (strcmp(memory.ptr, "Connection".ptr) == 0)
+                if (item == Item.Header)
                 {
-                    header = HeaderField.CONNECTION;
+                    import core.stdc.string;
+                    memory[index] = '\0';
+                    if (strcmp(memory.ptr, "Connection".ptr) == 0)
+                    {
+                        header = HeaderField.CONNECTION;
+                    }
+                    item = Item.HeaderSemicolon;
                 }
-                item = Item.HeaderSemicolon;
             }
             else if (chunk.buffer[i] == ' ')
             {
@@ -126,11 +135,15 @@ struct Parser
                     item = Item.HttpVersion;
                     index = 0;
                 }
-
-                if (item == Item.HeaderSemicolon)
+                else if (item == Item.HeaderSemicolon)
                 {
                     item = Item.HeaderValue;
                     index = 0;
+                }
+                else
+                {
+                    memory[index] = chunk.buffer[i];
+                    index++;
                 }
             }
             else
