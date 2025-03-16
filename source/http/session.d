@@ -43,10 +43,13 @@ struct Session
                 chunk.length = status;
                 int count = parser.feed(&chunk);
 
-                auto stub = "HTTP/1.1 200 OK\r\nServer: atlant-0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                import core.stdc.stdio;
+                printf("%d , %lu\n", count, stub.length);
                 for (int i = 0; i < count; i++)
                 {
-                    send(sockfd, &stub, stub.length, 0);
+                    import std.string;
+                    send(sockfd, toStringz(stub), stub.length, 0);
                 }
             }
             else if (status == 0)
