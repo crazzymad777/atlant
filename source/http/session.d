@@ -23,36 +23,38 @@ struct Session
     int sockfd;
     this(int sockfd)
     {
+        import core.sys.posix.sys.socket;
+        import core.sys.posix.sys.time;
         this.sockfd = sockfd;
+        timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, tv.sizeof);
     }
 
     void serve()
     {
+        import core.stdc.string;
         import core.stdc.stdio;
         import core.sys.posix.unistd;
         import atlant.http.chunk;
         import core.stdc.errno;
 
         Chunk chunk;
-        // chunk.length = chunk.buffer.sizeof;
         while (true)
         {
             chunk.length = chunk.buffer.sizeof;
             import core.sys.posix.sys.socket;
-            long status = recv(sockfd, &chunk.buffer, chunk.length, 0);
+
+            long status = recv(sockfd, &chunk.buffer, chunk.buffer.sizeof, 0);
             if (status > 0)
             {
+                printf("Received %ld\n", status);
+                import atlant.main;
                 chunk.length = status;
                 int count = parser.feed(&chunk);
-
-                //
-                // for (int i = 0; i < count; i++)
-                // {
-                //     import std.string;
-                //     send(sockfd, toStringz(stub), stub.length, 0);
-                // }
-                import atlant.main;
                 bool keepAlive = true;
+
                 for (int i = 0; i < count; i++)
                 {
                     import std.conv: to;
@@ -79,10 +81,7 @@ struct Session
                     {
                         stub ~= res.body;
                     }
-                    else
-                    {
-                        printf("HEAD\n");
-                    }
+
                     send(sockfd, toStringz(stub), stub.length, 0);
                     keepAlive &= req.keepAlive;
                 }
@@ -95,7 +94,8 @@ struct Session
             }
             else if (status == 0)
             {
-                break;
+                printf("Received %ld\n", status);
+                // break;
             }
             else if (status == -1)
             {

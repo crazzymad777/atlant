@@ -46,11 +46,11 @@ struct Parser
 
     int feed(Chunk* chunk)
     {
+        import core.stdc.ctype;
         import core.stdc.stdio;
         int count = 0;
         for (int i = 0; i < chunk.length; i++)
         {
-            putchar(chunk.buffer[i]);
             if (chunk.buffer[i] == '\n')
             {
                 if (index > 0)
@@ -77,7 +77,7 @@ struct Parser
                             {
                                 import core.stdc.string;
                                 memory[index-1] = '\0';
-                                if (strcmp(memory.ptr, "closed".ptr) == 0)
+                                if (strcmp(memory.ptr, "close".ptr) == 0)
                                 {
                                     current.keepAlive = false;
                                 }
