@@ -33,12 +33,11 @@ struct Parser
         Path,
         HttpVersion,
         Header,
-        HeaderSemicolon,
         HeaderValue
     }
 
     DList!Request requests;
-    int index;
+    int index = 0;
     char[1024] memory;
     private Item item = Item.Method;
     private Request current;
@@ -47,75 +46,15 @@ struct Parser
     int feed(Chunk* chunk)
     {
         import core.stdc.ctype;
-        import core.stdc.stdio;
         int count = 0;
         for (int i = 0; i < chunk.length; i++)
         {
-            if (chunk.buffer[i] == '\n')
+            bool reset = false;
+            if (item == Item.Method)
             {
-                if (index > 0)
-                {
-                    if (memory[index-1] == '\r')
-                    {
-                        if (item == Item.Header)
-                        {
-                            item = Item.Method;
-                            // import core.stdc.stdio;
-                            // if (current.method == HttpMethod.GET) printf("GET");
-                            // else if (current.method == HttpMethod.HEAD) printf("HEAD");
-                            // else printf("OTHERWISE");
-                            //
-                            // printf(" %s\n", current.path.ptr);
-
-                            requests.insertBack(current);
-                            current = Request();
-                            count++;
-                        }
-                        else if (item == Item.HeaderValue)
-                        {
-                            if (header == HeaderField.CONNECTION)
-                            {
-                                import core.stdc.string;
-                                memory[index-1] = '\0';
-                                if (strcmp(memory.ptr, "close".ptr) == 0)
-                                {
-                                    current.keepAlive = false;
-                                }
-                                else if (strcmp(memory.ptr, "keep-alive".ptr) == 0)
-                                {
-                                    current.keepAlive = true;
-                                }
-                            }
-                            header = HeaderField.UNKNOWN;
-                            item = Item.Header;
-                        }
-                        else if (item == Item.HttpVersion)
-                        {
-                            item = Item.Header;
-                        }
-                        index = 0;
-                    }
-                }
-            }
-            else if (chunk.buffer[i] == ':')
-            {
-                if (item == Item.Header)
+                if (chunk.buffer[i] == ' ')
                 {
                     import core.stdc.string;
-                    memory[index] = '\0';
-                    if (strcmp(memory.ptr, "Connection".ptr) == 0)
-                    {
-                        header = HeaderField.CONNECTION;
-                    }
-                    item = Item.HeaderSemicolon;
-                }
-            }
-            else if (chunk.buffer[i] == ' ')
-            {
-                if (item == Item.Method)
-                {
-                    import core.stdc.string;
-                    item = Item.Path;
                     memory[index] = '\0';
 
                     if (strcmp(memory.ptr, "HEAD".ptr) == 0)
@@ -126,25 +65,107 @@ struct Parser
                     {
                         current.method = HttpMethod.GET;
                     }
-                    index = 0;
+
+                    item = Item.Path;
+                    reset = true;
                 }
-                else if (item == Item.Path)
+            }
+            else if (item == Item.Path)
+            {
+                if (chunk.buffer[i] == ' ')
                 {
                     current.path = memory[0..index].dup;
-
                     item = Item.HttpVersion;
-                    index = 0;
+                    reset = true;
                 }
-                else if (item == Item.HeaderSemicolon)
+            }
+            else if (item == Item.HttpVersion)
+            {
+                if (chunk.buffer[i] == '\n')
                 {
+                    if (index > 0 && memory[index-1] == '\r')
+                    {
+                        item = Item.Header;
+                        reset = true;
+                    }
+                }
+            }
+            else if (item == Item.Header)
+            {
+                if (chunk.buffer[i] == '\n')
+                {
+                    if (index > 0 && memory[index-1] == '\r')
+                    {
+                        requests.insertBack(current);
+                        current = Request();
+                        count++;
+
+                        item = Item.Method;
+                        reset = true;
+                    }
+                }
+
+                if (chunk.buffer[i] == ':')
+                {
+                    import core.stdc.string;
+                    memory[index] = '\0';
+
+                    if (strcmp(memory.ptr, "Connection".ptr) == 0)
+                    {
+                        header = HeaderField.CONNECTION;
+                    }
                     item = Item.HeaderValue;
-                    index = 0;
+                    reset = true;
                 }
-                else
+            }
+            else if (item == Item.HeaderValue)
+            {
+                import core.stdc.string;
+                if (chunk.buffer[i] == '\n')
                 {
-                    memory[index] = chunk.buffer[i];
-                    index++;
+                    if (index > 0 && memory[index-1] == '\r')
+                    {
+                        // heading and trailing whitespaces are optional
+                        char* ptr = &memory[0];
+                        if (isspace(memory[0]))
+                        {
+                            ptr = &memory[1];
+                        }
+
+                        if (index > 1)
+                        {
+                            if (isspace(memory[index-2]))
+                            {
+                                memory[index-2] = '\0';
+                            }
+                            else
+                            {
+                                memory[index-1] = '\0';
+                            }
+                        }
+
+                        if (header == HeaderField.CONNECTION)
+                        {
+                            if (strcmp(ptr, "close".ptr) == 0)
+                            {
+                                current.keepAlive = false;
+                            }
+                            else if (strcmp(ptr, "keep-alive".ptr) == 0)
+                            {
+                                current.keepAlive = true;
+                            }
+                        }
+
+                        item = Item.Header;
+                        header = HeaderField.UNKNOWN;
+                        reset = true;
+                    }
                 }
+            }
+
+            if (reset)
+            {
+                index = 0;
             }
             else
             {
