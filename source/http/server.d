@@ -64,7 +64,7 @@ struct ServerInstance
             {
                 import atlant.http.session;
                 Session session = Session(conn);
-                session.fork();
+                session.spawn();
             }
         }
 
@@ -80,9 +80,15 @@ struct Server
 
     void listen(int port)
     {
-        import atlant.utils.thread;
+        import core.sys.posix.unistd;
+        // import atlant.utils.thread;
         instance.port = port;
-        Thread thread = Thread(&run_server_instance, cast(void*) &instance);
-        thread.join();
+        // Thread thread = Thread(&run_server_instance, cast(void*) &instance);
+        // thread.join();
+        // int pid = fork();
+        // if (pid == 0)
+        // {
+        run_server_instance(cast(void*) &instance);
+        // }
     }
 }

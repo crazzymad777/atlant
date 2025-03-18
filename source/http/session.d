@@ -109,9 +109,15 @@ struct Session
         close(sockfd);
     }
 
-    Thread fork()
+    void spawn()
     {
-        Thread thread = Thread(&run_session, cast(void*) &this);
-        return thread;
+        // Thread thread = Thread(&run_session, cast(void*) &this);
+        // return thread;
+        import core.sys.posix.unistd;
+        int pid = fork();
+        if (pid == 0)
+        {
+            run_session(cast(void*) &this);
+        }
     }
 }

@@ -24,7 +24,7 @@ void main(string[] args)
 	server.listen(conf.port);
 
 	import core.stdc.stdio;
-	printf("Server successfully had finished.\n");
+	printf("Server's job had finished.\n");
 /+
 	HTTPServerSettings settings = new HTTPServerSettings();
 	settings.serverString = "atlant/0.0.1-alpha";
