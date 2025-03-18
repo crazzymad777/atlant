@@ -23,13 +23,7 @@ struct Session
     int sockfd;
     this(int sockfd)
     {
-        import core.sys.posix.sys.socket;
-        import core.sys.posix.sys.time;
         this.sockfd = sockfd;
-        timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, tv.sizeof);
     }
 
     void serve()
