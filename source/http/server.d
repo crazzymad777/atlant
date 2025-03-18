@@ -81,14 +81,7 @@ struct Server
     void listen(int port)
     {
         import core.sys.posix.unistd;
-        // import atlant.utils.thread;
         instance.port = port;
-        // Thread thread = Thread(&run_server_instance, cast(void*) &instance);
-        // thread.join();
-        // int pid = fork();
-        // if (pid == 0)
-        // {
         run_server_instance(cast(void*) &instance);
-        // }
     }
 }

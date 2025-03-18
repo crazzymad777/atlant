@@ -56,27 +56,27 @@ struct Session
                     Request req = parser.requests.front();
                     parser.requests.removeFront();
                     Response res = handleRequest(req);
-                    string stub;
+                    string head;
                     if (res.status == 200)
                     {
-                        stub = "HTTP/1.1 200 OK\r\n";
+                        head = "HTTP/1.1 200 OK\r\n";
                     }
                     else if (res.status == 404)
                     {
-                        stub = "HTTP/1.1 404 Not Found\r\n";
+                        head = "HTTP/1.1 404 Not Found\r\n";
                     }
                     else
                     {
-                        stub = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
+                        head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
                     }
-                    stub ~= "Server: atlant/0.0.1\r\nContent-Type: " ~ res.mime ~ "\r\nContent-Length: " ~ to!string(res.body.length) ~ "\r\n\r\n";
-                    //string stub = "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+                    head ~= "Server: atlant/0.0.1\r\nContent-Type: " ~ res.mime ~ "\r\nContent-Length: " ~ to!string(res.body.length) ~ "\r\n\r\n";
+                    send(sockfd, toStringz(head), head.length, 0);
+
                     if (req.method != HttpMethod.HEAD)
                     {
-                        stub ~= res.body;
+                        send(sockfd, res.body.ptr, res.body.length, 0);
                     }
 
-                    send(sockfd, toStringz(stub), stub.length, 0);
                     keepAlive &= req.keepAlive;
                 }
 
@@ -105,12 +105,12 @@ struct Session
 
     void spawn()
     {
-        // Thread thread = Thread(&run_session, cast(void*) &this);
-        // return thread;
         import core.sys.posix.unistd;
+        import core.stdc.stdio;
         int pid = fork();
         if (pid == 0)
         {
+            printf("Session job (%d) had started.\n", getpid());
             run_session(cast(void*) &this);
         }
     }

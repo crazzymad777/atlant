@@ -8,6 +8,10 @@ __gshared HashTable gold;
 
 void main(string[] args)
 {
+	import core.sys.posix.unistd;
+	import core.stdc.stdio;
+	printf("Server's job (%d) had started.\n", getpid());
+
 	import atlant.utils.configuration;
 	import atlant.http.server;
 
@@ -23,19 +27,7 @@ void main(string[] args)
 	Server server;
 	server.listen(conf.port);
 
-	import core.stdc.stdio;
-	printf("Server's job had finished.\n");
-/+
-	HTTPServerSettings settings = new HTTPServerSettings();
-	settings.serverString = "atlant/0.0.1-alpha";
-	settings.disableDistHost = true;
-	settings.bindAddresses = conf.bindAddresses;
-	settings.port = cast(ushort) conf.port;
-
-	auto listener = listenHTTP(settings , &handleRequest);
-	scope (exit) listener.stopListening();
-	runEventLoop();
-+/
+	printf("Server's job (%d) had finished.\n", getpid());
 }
 
 import atlant.http.parser;
