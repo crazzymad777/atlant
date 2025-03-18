@@ -14,8 +14,8 @@ enum HeaderField
 struct Request
 {
     HttpMethod method;
-    string path;
     bool keepAlive;
+    char* path;
 }
 
 struct Response
@@ -40,7 +40,7 @@ struct Parser
     int index = 0;
     char[1024] memory;
     private Item item = Item.Method;
-    private Request current;
+    private Request current = Request();
     private HeaderField header;
 
     int feed(Chunk* chunk)
@@ -74,7 +74,9 @@ struct Parser
             {
                 if (chunk.buffer[i] == ' ')
                 {
-                    current.path = memory[0..index].dup;
+                    import core.stdc.string;
+                    memory[index] = '\0';
+                    current.path = strdup(&memory[0]);
                     item = Item.HttpVersion;
                     reset = true;
                 }

@@ -28,21 +28,22 @@ struct Bucket
 		length++;
 	}
 
-	public CutGem* find(string path, long hash)
+	public CutGem* find(long hash)
 	{
 		int i = 0;
 		for (; i < length; i++)
 		{
 			if (gems.at(i).hash == hash)
 			{
-				if (gems.at(i).uniqueHash)
-				{
-					break;
-				}
-				else if (gems.at(i).path == path)
-				{
-					break;
-				}
+				break;
+				// if (gems.at(i).uniqueHash)
+				// {
+				// 	break;
+				// }
+				// else if (gems.at(i).path == path)
+				// {
+				// 	break;
+				// }
 			}
 		}
 		return i != length ? gems.at(i) : null;
@@ -85,20 +86,17 @@ struct HashTable
 		// hashMap.rehash;
 	}
 
-	public CutGem* search(string path)
+	public CutGem* search(char* path)
 	{
-		if (path[path.length-1] != '/')
-		{
-			path ~= '/';
-		}
+		import atlant.utils.hash;
 
-		long hash = object.hashOf(path);
+		long hash = hashOf!true(path);
 		long index = hash%reducer;
 		Bucket* bucket = buckets.at(index);
 		if (bucket is null)
 		{
 			return null;
 		}
-		return bucket.find(path, hash);
+		return bucket.find(hash);
 	}
 }

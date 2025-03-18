@@ -42,9 +42,9 @@ import atlant.http.parser;
 
 Response handleRequest(Request req)
 {
+	import std.string;
 	import core.stdc.stdio;
-	import std.uri;
-	auto gem = gold.search(decode(req.path));
+	auto gem = gold.search(req.path);
 	if (gem !is null)
 	{
 		if (!gem.payload.dirty)
@@ -62,6 +62,6 @@ Response handleRequest(Request req)
 			}
 		}
 	}
-	return Response(404, cast(ubyte[]) ("Resource " ~ req.path ~ " Not Found"), "text/plain");
+	return Response(404, cast(ubyte[]) ("Requested Resource Not Found"), "text/plain");
 }
 
