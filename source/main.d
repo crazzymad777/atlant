@@ -30,10 +30,11 @@ void main(string[] args)
 	printf("Server's job (%d) had finished.\n", getpid());
 }
 
-import atlant.http.parser;
+import atlant.http.session;
 
 Response handleRequest(Request req)
 {
+	import atlant.utils.data;
 	import std.string;
 	import core.stdc.stdio;
 	auto gem = gold.search(req.path);
@@ -43,17 +44,17 @@ Response handleRequest(Request req)
 		{
 			if (gem.payload.loaded)
 			{
-				return Response(200, cast(ubyte[]) gem.payload.data, gem.payload.mime);
+				return Response(200, Data.fromDynamicVoid(gem.payload.data), gem.payload.mime);
 			}
 
 			gem.load();
 			// we need to check dirty flag
 			if (!gem.payload.dirty)
 			{
-				return Response(200, cast(ubyte[]) gem.payload.data, gem.payload.mime);
+				return Response(200, Data.fromDynamicVoid(gem.payload.data), gem.payload.mime);
 			}
 		}
 	}
-	return Response(404, cast(ubyte[]) ("Requested Resource Not Found"), "text/plain");
+	return Response(404, Data.fromString("Requested Resource Not Found"), "text/plain");
 }
 

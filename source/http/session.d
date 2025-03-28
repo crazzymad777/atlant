@@ -1,7 +1,9 @@
 module atlant.http.session;
 
-import atlant.utils.thread;
+public import atlant.http.parser: Request;
+import atlant.utils.array;
 import atlant.http.parser;
+import atlant.utils.data;
 
 enum HttpMethod
 {
@@ -15,6 +17,13 @@ extern(C) void* run_session(void* data)
     Session* session = cast(Session*) data;
     session.serve();
     return null;
+}
+
+struct Response
+{
+    int status;
+    Data body;
+    string mime;
 }
 
 struct Session
@@ -74,7 +83,7 @@ struct Session
 
                     if (req.method != HttpMethod.HEAD)
                     {
-                        send(sockfd, res.body.ptr, res.body.length, 0);
+                        send(sockfd, res.body.pointer, res.body.length, 0);
                     }
 
                     keepAlive &= req.keepAlive;

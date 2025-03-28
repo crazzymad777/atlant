@@ -18,13 +18,6 @@ struct Request
     char* path;
 }
 
-struct Response
-{
-    int status;
-    ubyte[] body;
-    string mime;
-}
-
 struct Parser
 {
     private enum Item
