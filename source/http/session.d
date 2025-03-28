@@ -85,22 +85,22 @@ struct Session
                     Request req = parser.requests.front().value;
                     Response res = handleRequest(req);
 
-                    string head;
+                    char[24] x;
                     if (res.status == 200)
                     {
-                        head = "HTTP/1.1 200 OK\r\n";
+                        snprintf(&x[0], 24, "HTTP/1.1 200 OK");
                     }
                     else if (res.status == 404)
                     {
-                        head = "HTTP/1.1 404 Not Found\r\n";
+                        snprintf(&x[0], 24, "HTTP/1.1 404 Not Found");
                     }
                     else
                     {
-                        //head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
+                        snprintf(&x[0], 24, "HTTP/1.1 %d", res.status);
                     }
 
                     char[128] buffer;
-                    int bytes = snprintf(&buffer[0], 128, "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: application/octet-stream\r\nContent-Length: %lu\r\n\r\n", res.body.length);
+                    int bytes = snprintf(&buffer[0], 128, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: application/octet-stream\r\nContent-Length: %lu\r\n\r\n", &x[0], res.body.length);
 
                     //Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
                     send(sockfd, &buffer[0], bytes, 0);
