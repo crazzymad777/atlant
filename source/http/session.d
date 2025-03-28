@@ -26,6 +26,27 @@ struct Response
     string mime;
 }
 
+Data build(string...)(string args)
+{
+    import core.stdc.stdlib;
+    import core.stdc.string;
+    int count = 0;
+    foreach(x; args)
+    {
+        count += x.length;
+    }
+    Data data = Data(malloc(count), count);
+    count = 0;
+    ubyte* dest = cast(ubyte*) data.pointer;
+
+    foreach(x; args)
+    {
+        memcpy(dest, x.ptr, x.length);
+        dest += x.length;
+    }
+    return data;
+}
+
 struct Session
 {
     Parser parser;
@@ -37,6 +58,7 @@ struct Session
 
     void serve()
     {
+        import core.stdc.stdlib;
         import core.stdc.string;
         import core.stdc.stdio;
         import core.sys.posix.unistd;
@@ -65,6 +87,7 @@ struct Session
                     Request req = parser.requests.front();
                     parser.requests.removeFront();
                     Response res = handleRequest(req);
+
                     string head;
                     if (res.status == 200)
                     {
@@ -78,8 +101,10 @@ struct Session
                     {
                         head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
                     }
-                    head ~= "Server: atlant/0.0.1\r\nContent-Type: " ~ res.mime ~ "\r\nContent-Length: " ~ to!string(res.body.length) ~ "\r\n\r\n";
-                    send(sockfd, toStringz(head), head.length, 0);
+
+                    Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
+                    send(sockfd, data.pointer, data.length, 0);
+                    free(data.pointer);
 
                     if (req.method != HttpMethod.HEAD)
                     {
