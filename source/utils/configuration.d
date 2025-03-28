@@ -3,15 +3,41 @@ module atlant.utils.configuration;
 struct Configuration
 {
 	bool defaultIndex;
-	string[] index;
 	string workingDirectory;
-	bool enableDirectoryList; // bool showDirectoryContents;
+	bool enableDirectoryList;
 	bool lazyLoad;
-	string[] bindAddresses;
 	bool defaultBindAddresses;
 	int port;
 }
 
+Configuration defaultConfiguration()
+{
+	Configuration conf;
+	conf.port = 8080;
+	conf.enableDirectoryList = true;
+	conf.lazyLoad = false;
+	import std.file: getcwd;
+	conf.workingDirectory = getcwd();
+	return conf;
+}
+
+void parseArgs(Configuration* conf) // string[] args
+{
+}
+
+// struct Configuration
+// {
+// 	bool defaultIndex;
+// 	string[] index;
+// 	string workingDirectory;
+// 	bool enableDirectoryList; // bool showDirectoryContents;
+// 	bool lazyLoad;
+// 	string[] bindAddresses;
+// 	bool defaultBindAddresses;
+// 	int port;
+// }
+
+/+
 private void parseOption(Configuration* conf, string pair)
 {
 	import std.array: split;
@@ -254,4 +280,4 @@ void parseArgs(Configuration* conf, string[] args)
 			next = Option.AddIndex;
 		}
 	}
-}
+}+/

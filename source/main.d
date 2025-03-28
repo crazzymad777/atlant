@@ -16,7 +16,7 @@ void main(string[] args)
 	import atlant.http.server;
 
 	auto conf = defaultConfiguration();
-	parseArgs(&conf, args); // break when --help passed
+	parseArgs(&conf); // break when --help passed
 
 	Scanner scanner = Scanner();
 	scanner.configure(conf);

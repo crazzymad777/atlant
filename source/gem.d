@@ -68,7 +68,7 @@ struct CutGem
 		else if (type == Type.Directory)
 		{
 			// index file
-			string[] index = gemConf.index;
+			string[] index = ["index.html", "index.htm"]; //gemConf.index;
 			payload.dirty = true;
 			for (int i = 0; i < index.length; i++) //
 			{
