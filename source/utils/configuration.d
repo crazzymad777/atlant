@@ -16,8 +16,8 @@ Configuration defaultConfiguration()
 	conf.port = 8080;
 	conf.enableDirectoryList = true;
 	conf.lazyLoad = false;
-	import std.file: getcwd;
-	conf.workingDirectory = getcwd();
+	//import std.file: getcwd;
+	conf.workingDirectory = "/"; //getcwd();
 	return conf;
 }
 

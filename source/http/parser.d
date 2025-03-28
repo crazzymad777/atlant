@@ -3,7 +3,7 @@ module atlant.http.parser;
 import atlant.http.session;
 import atlant.http.chunk;
 
-import std.container : DList;
+// import std.container : DList;
 
 enum HeaderField
 {
@@ -29,11 +29,11 @@ struct Parser
         HeaderValue
     }
 
-    DList!Request requests;
+    // DList!Request requests;
     int index = 0;
     char[1024] memory;
     private Item item = Item.Method;
-    private Request current = Request();
+    Request current = Request();
     private HeaderField header;
 
     int feed(Chunk* chunk)
@@ -91,12 +91,13 @@ struct Parser
                 {
                     if (index > 0 && memory[index-1] == '\r')
                     {
-                        requests.insertBack(current);
-                        current = Request();
+                        //requests.insertBack(current);
+                        //current = Request();
                         count++;
 
                         item = Item.Method;
                         reset = true;
+                        return 1;
                     }
                 }
 

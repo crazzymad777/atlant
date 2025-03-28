@@ -10,8 +10,8 @@ struct Data
         return Data(cast(void*) s.ptr, s.length);
     }
 
-    static Data fromDynamicVoid(immutable(void)[] v)
-    {
-        return Data(cast(void*) v.ptr, v.length);
-    }
+    // static Data fromDynamicVoid(immutable(void)[] v)
+    // {
+    //     return Data(cast(void*) v.ptr, v.length);
+    // }
 }

@@ -82,10 +82,8 @@ struct Session
 
                 for (int i = 0; i < count; i++)
                 {
-                    import std.conv: to;
-                    import std.string;
-                    Request req = parser.requests.front();
-                    parser.requests.removeFront();
+                    Request req = parser.current;//.requests.front();
+                    //parser.requests.removeFront();
                     Response res = handleRequest(req);
 
                     string head;
@@ -99,10 +97,10 @@ struct Session
                     }
                     else
                     {
-                        head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
+                        //head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
                     }
 
-                    Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
+                    Data data = build(head); //build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
                     send(sockfd, data.pointer, data.length, 0);
                     free(data.pointer);
 
