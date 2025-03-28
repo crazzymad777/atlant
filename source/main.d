@@ -35,25 +35,25 @@ import atlant.http.session;
 Response handleRequest(Request req)
 {
 	import atlant.utils.data;
-	import core.stdc.stdio;
-	auto gem = gold.search(req.path);
-	if (gem !is null)
-	{
-		if (!gem.payload.dirty)
-		{
-			if (gem.payload.loaded)
-			{
-				return Response(200, gem.payload.data, gem.payload.mime);
-			}
-
-			//gem.load();
-			// we need to check dirty flag
-			if (!gem.payload.dirty)
-			{
-				return Response(200, gem.payload.data, gem.payload.mime);
-			}
-		}
-	}
+	// import core.stdc.stdio;
+	// auto gem = gold.search(req.path);
+	// if (gem !is null)
+	// {
+	// 	if (!gem.payload.dirty)
+	// 	{
+	// 		if (gem.payload.loaded)
+	// 		{
+	// 			return Response(200, gem.payload.data, gem.payload.mime);
+	// 		}
+ //
+	// 		//gem.load();
+	// 		// we need to check dirty flag
+	// 		if (!gem.payload.dirty)
+	// 		{
+	// 			return Response(200, gem.payload.data, gem.payload.mime);
+	// 		}
+	// 	}
+	// }
 	return Response(404, Data.fromString("Requested Resource Not Found"), "text/plain");
 }
 

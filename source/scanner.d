@@ -2,7 +2,7 @@ module atlant.scanner;
 
 // import std.file: DirEntry, SpanMode, dirEntries;
 import atlant.utils.configuration;
-// import std.container.slist;
+import atlant.utils.list;
 import atlant.hash_table;
 import atlant.gem;
 
@@ -12,7 +12,7 @@ struct Scanner
 	// private bool trackDirectories = false;
 	// private string directory;
 	// private SList!(CutGem*) gems;
-	private CutGem[16] gems;
+	private List!(CutGem*) gems;
 	private long counter;
 
 	public void configure(Configuration* conf)
@@ -107,7 +107,7 @@ struct Scanner
 		// 		gem.load();
 		// 	}
 		// }
-		// return HashTable(this.getCounter(), this.getGems());
-		return HashTable();
+		return HashTable(this.getGems());
+		// return HashTable();
 	}
 }

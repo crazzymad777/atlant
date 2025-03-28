@@ -1,7 +1,7 @@
 module atlant.hash_table;
 
-// import std.container.slist;
 import atlant.utils.array;
+import atlant.utils.list;
 import atlant.gem;
 
 struct Bucket
@@ -54,35 +54,41 @@ struct HashTable
 {
 	private Array!(Bucket*) buckets;
 	public long reducer;
-	// public this(long counter, SList!(CutGem*) gems)
-	// {
-	// 	import core.stdc.stdlib;
- //
-	// 	reducer = counter;
-	// 	buckets = Array!(Bucket*)(reducer);
-	// 	int* counts = cast(int*) malloc(int.sizeof * reducer);//new int[reducer];
-	// 	foreach (x; gems)
-	// 	{
-	// 		long index = x.hash % reducer;
-	// 		counts[index]++;
-	// 	}
- //
-	// 	foreach (x; gems)
-	// 	{
-	// 		long index = x.hash % reducer;
-	// 		Bucket* bucket = buckets.at(index);
-	// 		if (bucket is null)
-	// 		{
-	// 			bucket = new Bucket(counts[index]);
-	// 			buckets.put(index, bucket);
-	// 		}
- //
-	// 		bucket.put(x);
-	// 	}
- //
-	// 	free(counts);
-	// 	rehash();
-	// }
+	public this(List!(CutGem*) gems)
+	{
+		import core.stdc.stdlib;
+
+		reducer = gems.length;
+		buckets = Array!(Bucket*)(reducer);
+		int* counts = cast(int*) malloc(int.sizeof * reducer);//new int[reducer];
+
+		auto node = gems.front();
+		while (node != null)
+		{
+			auto x = node.value;
+			long index = x.hash % reducer;
+			counts[index]++;
+			node = node.next;
+		}
+
+		while (node != null)
+		{
+			auto x = node.value;
+			long index = x.hash % reducer;
+			Bucket* bucket = buckets.at(index);
+			if (bucket is null)
+			{
+				bucket = cast(Bucket*) malloc(counts[index] * Bucket.sizeof); //new Bucket(counts[index]);
+				buckets.put(index, bucket);
+			}
+
+			bucket.put(x);
+			node = node.next;
+		}
+
+		free(counts);
+		rehash();
+	}
 
 	public void rehash()
 	{

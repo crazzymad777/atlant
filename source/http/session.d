@@ -82,8 +82,7 @@ struct Session
 
                 for (int i = 0; i < count; i++)
                 {
-                    Request req = parser.current;//.requests.front();
-                    //parser.requests.removeFront();
+                    Request req = parser.requests.front().value;
                     Response res = handleRequest(req);
 
                     string head;
@@ -100,9 +99,12 @@ struct Session
                         //head = "HTTP/1.1 " ~ to!string(res.status) ~ "\r\n";
                     }
 
-                    Data data = build(head); //build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
-                    send(sockfd, data.pointer, data.length, 0);
-                    free(data.pointer);
+                    char[128] buffer;
+                    int bytes = snprintf(&buffer[0], 128, "HTTP/1.1 200 OK\r\nServer: atlant/0.0.1\r\nContent-Type: application/octet-stream\r\nContent-Length: %lu\r\n\r\n", res.body.length);
+
+                    //Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
+                    send(sockfd, &buffer[0], bytes, 0);
+                    //free(data.pointer);
 
                     if (req.method != HttpMethod.HEAD)
                     {
@@ -110,6 +112,7 @@ struct Session
                     }
 
                     closeConnection &= req.closeConnection;
+                    parser.requests.removeFront();
                 }
 
                 if (closeConnection)
