@@ -3,21 +3,28 @@ module atlant.utils.configuration;
 struct Configuration
 {
 	bool defaultIndex;
-	string workingDirectory;
+	char* workingDirectory;
 	bool enableDirectoryList;
 	bool lazyLoad;
 	bool defaultBindAddresses;
 	int port;
+
+	~this()
+	{
+		import core.stdc.stdlib;
+		free(workingDirectory);
+	}
 }
 
 Configuration defaultConfiguration()
 {
+	import core.sys.posix.unistd: getcwd;
+
 	Configuration conf;
 	conf.port = 8080;
 	conf.enableDirectoryList = true;
 	conf.lazyLoad = false;
-	//import std.file: getcwd;
-	conf.workingDirectory = "/"; //getcwd();
+	conf.workingDirectory = getcwd(null, 0);
 	return conf;
 }
 

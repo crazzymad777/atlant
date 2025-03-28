@@ -19,7 +19,7 @@ extern(C) void main()
 	parseArgs(&conf); // break when --help passed
 
 	Scanner scanner = Scanner();
-	scanner.configure(conf);
+	scanner.configure(&conf);
 	scanner.scan();
 	gemConf = &conf; // workaround index files
 	gold = scanner.build(conf.lazyLoad);

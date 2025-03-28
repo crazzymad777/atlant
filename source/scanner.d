@@ -8,16 +8,18 @@ import atlant.gem;
 
 struct Scanner
 {
-	private bool trackDirectories = false;
-	private string directory;
+	private Configuration* conf;
+	// private bool trackDirectories = false;
+	// private string directory;
 	// private SList!(CutGem*) gems;
 	private CutGem[16] gems;
 	private long counter;
 
-	public void configure(Configuration conf)
+	public void configure(Configuration* conf)
 	{
-		setDirectoryList(conf.enableDirectoryList);
-		setDirectory(conf.workingDirectory);
+		// setDirectoryList(conf.enableDirectoryList);
+		// setDirectory(conf.workingDirectory);
+		this.conf = conf;
 	}
 
 	public long getCounter()
@@ -30,15 +32,15 @@ struct Scanner
 		return gems;
 	}
 
-	public void setDirectory(string directory)
-	{
-		this.directory = directory;
-	}
-
-	public void setDirectoryList(bool flag)
-	{
-		this.trackDirectories = flag;
-	}
+	// public void setDirectory(string directory)
+	// {
+	// 	this.directory = directory;
+	// }
+ //
+	// public void setDirectoryList(bool flag)
+	// {
+	// 	this.trackDirectories = flag;
+	// }
 
 	protected CutGem* scanDirectory(string path, string reqPath)
 	{
@@ -93,7 +95,7 @@ struct Scanner
 	{
 		//gems = SList!(CutGem*)();
 		counter = 0;
-		scanDirectory(directory, "");
+		// scanDirectory(conf.workingDirectory, "");
 	}
 
 	public HashTable build(bool lazyLoad)
