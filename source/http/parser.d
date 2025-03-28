@@ -14,7 +14,7 @@ enum HeaderField
 struct Request
 {
     HttpMethod method;
-    bool keepAlive;
+    bool closeConnection;
     char* path;
 }
 
@@ -143,11 +143,11 @@ struct Parser
                         {
                             if (strcmp(ptr, "close".ptr) == 0)
                             {
-                                current.keepAlive = false;
+                                current.closeConnection = true;
                             }
                             else if (strcmp(ptr, "keep-alive".ptr) == 0)
                             {
-                                current.keepAlive = true;
+                                current.closeConnection = false;
                             }
                         }
 

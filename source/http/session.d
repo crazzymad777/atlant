@@ -78,7 +78,7 @@ struct Session
                 import atlant.main;
                 chunk.length = status;
                 int count = parser.feed(&chunk);
-                bool keepAlive = true;
+                bool closeConnection = true;
 
                 for (int i = 0; i < count; i++)
                 {
@@ -111,10 +111,10 @@ struct Session
                         send(sockfd, res.body.pointer, res.body.length, 0);
                     }
 
-                    keepAlive &= req.keepAlive;
+                    closeConnection &= req.closeConnection;
                 }
 
-                if (!keepAlive)
+                if (closeConnection)
                 {
                     printf("DO NOT KEEP CONNECTION\n");
                     break;
