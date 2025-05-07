@@ -1,17 +1,25 @@
 module atlant.filesystem.scanner;
 
+import core.sys.posix.dirent;
+extern(C) int dirfd(DIR *dirp);
+
 struct Scanner
 {
-    import core.sys.posix.dirent;
     this(char* directory)
     {
         this.directory = directory;
     }
     char* directory;
 
-    void scan()
+    void scan(char* directory = null)
     {
         import core.stdc.stdio;
+
+        if (directory is null)
+        {
+            directory = this.directory;
+        }
+
         DIR* dirptr = opendir(directory);
 
         if (!dirptr)
@@ -26,6 +34,7 @@ struct Scanner
 
     void traverse(DIR* dirptr)
     {
+        import core.sys.posix.unistd;
         import core.stdc.string;
         import core.stdc.stdio;
         dirent* entry;
@@ -53,7 +62,11 @@ struct Scanner
 
             if (entry.d_type == DT_DIR)
             {
+                int fd = dirfd(dirptr);
                 printf("d %s\n", &entry.d_name[0]);
+                chdir(&entry.d_name[0]);
+                scan(cast(char*) ".".ptr);
+                fchdir(fd);
             }
 
             if (entry.d_type == DT_LNK)
