@@ -5,6 +5,7 @@ module atlant.utils.string;
 // auto-grow
 // equals
 // iterating...
+// reset, next, take
 
 private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
 {
@@ -26,11 +27,12 @@ struct String
     enum Type
     {
         cString,
-        Cannonic
+        cannonic
     };
     bool finalized = false;
     int allocated_length;
     char* data;
+    int length;
     Type type;
     int index;
     int hash;
@@ -47,20 +49,24 @@ struct String
     int put(char x)
     {
         assert(finalized == false);
-        if (index >= allocated_length)
+        if (type == Type.cannonic)
         {
-            // reallocate...
-            import core.stdc.stdlib;
-            int space = allocated_length + 1024;
-            data = cast(char*) realloc(data, space);
-            assert(data !is null);
-            allocated_length = space;
-        }
-        data[index] = x;
-        index++;
+            if (index >= allocated_length)
+            {
+                // reallocate...
+                import core.stdc.stdlib;
+                int space = allocated_length + 1024;
+                data = cast(char*) realloc(data, space);
+                assert(data !is null);
+                allocated_length = space;
+            }
+            data[index] = x;
+            index++;
 
-        hasher.put(x);
-        return index;
+            hasher.put(x);
+            return index;
+        }
+        assert(false);
     }
 
     void finalize()
@@ -70,26 +76,31 @@ struct String
         auto hashed = hasher.finish();
         hash = get32bits(&hashed[0]);
         computed = true;
+        length = index;
     }
 
     // for C-string
     int compute()
     {
-        import std.digest.murmurhash;
-        MurmurHash3!32 chasher;
-        int i = 0;
-        while (data[i] != '\0')
+        if (type == Type.cannonic)
         {
-            chasher.put(data[i]);
-            i++;
+            import std.digest.murmurhash;
+            MurmurHash3!32 chasher;
+            int i = 0;
+            while (data[i] != '\0')
+            {
+                chasher.put(data[i]);
+                i++;
+            }
+            auto hashed = chasher.finish();
+            return get32bits(&hashed[0]);
         }
-        auto hashed = chasher.finish();
-        return get32bits(&hashed[0]);
+        assert(false);
     }
 
     int hashOf()
     {
-        if (type == Type.Cannonic)
+        if (type == Type.cannonic)
         {
             assert(finalized == true);
             return hash;
@@ -104,6 +115,36 @@ struct String
             hash = compute();
             computed = true;
             return hash;
+        }
+
+        assert(false);
+    }
+
+    void reset()
+    {
+        index = 0;
+    }
+
+    char take()
+    {
+        return data[index];
+    }
+
+    void next()
+    {
+        index++;
+    }
+
+    bool hasNext()
+    {
+        if (type == Type.cannonic)
+        {
+            return index < length;
+        }
+
+        if (type == Type.cString)
+        {
+            return take() != '\0';
         }
 
         assert(false);
