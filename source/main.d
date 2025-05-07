@@ -2,18 +2,12 @@ module atlant.main;
 
 extern(C) void main()
 {
-    import atlant.utils.string;
+    import atlant.utils.configuration;
     import core.stdc.stdio;
-    String s;
-    String.cString(&s, cast(char*) "hello world".ptr);
-    printf("%d\n", s.hashOf());
 
-    String s2;
-    s2.type = String.Type.cannonic;
-    foreach (char x ; "hello world")
-    {
-        s2.put(x);
-    }
-    s2.finalize();
-    printf("%d\n", s.equals(&s2));
+    Configuration conf;
+    defaultConfiguration(&conf);
+    // parseArgs...
+    printf("directory=%s\n", conf.directory.data);
+    printf("port=%d\n", conf.port);
 }
