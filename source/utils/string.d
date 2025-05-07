@@ -165,10 +165,12 @@ struct String
         assert(false);
     }
 
-    bool equals(String* other)
+    bool equals(String* other, bool unique = false)
     {
         if (other.hashOf() == hashOf())
         {
+            if (unique) return true;
+
             other.reset();
             reset();
 
