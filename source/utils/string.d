@@ -164,6 +164,28 @@ struct String
 
         assert(false);
     }
+
+    bool equals(String* other)
+    {
+        if (other.hashOf() == hashOf())
+        {
+            other.reset();
+            reset();
+
+            while (hasNext() && other.hasNext())
+            {
+                if (take() != other.take)
+                {
+                    return false;
+                }
+
+                other.next();
+                next();
+            }
+            return hasNext() == other.hasNext();
+        }
+        return false;
+    }
 }
 
 unittest

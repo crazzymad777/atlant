@@ -15,5 +15,5 @@ extern(C) void main()
         s2.put(x);
     }
     s2.finalize();
-    printf("%d\n", s2.compute());
+    printf("%d\n", s.equals(&s2));
 }
