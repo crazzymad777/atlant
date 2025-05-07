@@ -18,7 +18,7 @@ struct GemData
 	// public bool forbidden;
 }
 
-import std.container.slist;
+import atlant.utils.list;
 
 struct CutGem
 {
@@ -26,6 +26,33 @@ struct CutGem
 	public string path;
 	public ulong hash;
 	public GemData* payload;
+
+	enum Type
+	{
+		Directory,
+		File
+	}
+	Type type;
+
+	private string fsPath;
+
+	private this(string reqPath)
+	{
+		import atlant.utils.hash;
+		this.path = reqPath;
+		this.hash = hashOf(reqPath);
+	}
+
+	public void touch() // Gentle touch
+	{
+		if (type == Type.File)
+		{
+			if (payload.mime is null)
+			{
+				payload.mime = get_file_mime(fsPath);
+			}
+		}
+	}
 }
 
 // struct CutGem
@@ -191,8 +218,8 @@ struct CutGem
 // 		return gem;
 // 	}
 //
-// 	public SList!(CutGem*) subdirectories;
-// 	public SList!(CutGem*) files;
+// 	public List!(CutGem*) subdirectories;
+// 	public List!(CutGem*) files;
 // 	private bool track;
 //
 // 	public static CutGem* directoryOf(string reqPath, string fsPath, bool track, DirEntry entry)

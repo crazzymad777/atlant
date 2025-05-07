@@ -12,17 +12,17 @@ private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
     }
 }
 
-// uint hashOf(string x)
-// {
-//     import  std.digest.murmurhash;
-//     MurmurHash3!32 hasher;
-//     for (int i = 0; i < x.length; i++)
-//     {
-//         hasher.put(x[i]);
-//     }
-//     auto hashed = hasher.finish();
-//     return get32bits(&hashed[0]);
-// }
+uint hashOf(string x)
+{
+    import  std.digest.murmurhash;
+    MurmurHash3!32 hasher;
+    for (int i = 0; i < x.length; i++)
+    {
+        hasher.put(x[i]);
+    }
+    auto hashed = hasher.finish();
+    return get32bits(&hashed[0]);
+}
 
 uint hashOf(bool mandotarySlashTerm = false)(char* szString)
 {
