@@ -6,6 +6,7 @@ module atlant.utils.string;
 // equals
 // iterating...
 // reset, next, take
+// use, release
 
 private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
 {
@@ -31,12 +32,30 @@ struct String
     };
     bool finalized = false;
     int allocated_length;
-    char* data;
+    char* data; // one indirection
     int length;
     Type type;
     int index;
     int hash;
     bool computed = false;
+    int used = 0;
+
+    void use()
+    {
+        used++;
+    }
+
+    void release()
+    {
+        used--;
+        if (used <= 0)
+        {
+            if (allocated_length > 0)
+            {
+                free(data);
+            }
+        }
+    }
 
     static void cString(String* s, char* ptr)
     {
