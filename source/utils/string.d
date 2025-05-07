@@ -49,6 +49,8 @@ struct String
 
     static void cString(String* s, char* ptr)
     {
+        assert(ptr !is null);
+
         s.finalized = true;
         s.data = ptr;
         s.type = Type.cString;
