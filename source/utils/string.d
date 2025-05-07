@@ -52,6 +52,7 @@ struct String
         {
             if (allocated_length > 0)
             {
+                import core.stdc.stdlib;
                 free(data);
             }
         }
@@ -163,4 +164,16 @@ struct String
 
         assert(false);
     }
+}
+
+unittest
+{
+    String s2;
+    s2.type = String.Type.cannonic;
+    foreach (char x ; "hello world")
+    {
+        s2.put(x);
+    }
+    s2.finalize();
+    assert(s2.hashOf() == 1586663183);
 }
