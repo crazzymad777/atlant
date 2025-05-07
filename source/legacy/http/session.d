@@ -75,7 +75,7 @@ struct Session
             if (status > 0)
             {
                 printf("Received %ld\n", status);
-                import atlant.main;
+                import atlant.legacy.main;
                 chunk.length = status;
                 int count = parser.feed(&chunk);
                 bool closeConnection = true;

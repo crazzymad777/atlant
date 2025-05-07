@@ -1,4 +1,4 @@
-module atlant.main;
+module atlant.legacy.main;
 
 import atlant.hash_table;
 import atlant.scanner;
@@ -6,7 +6,7 @@ import atlant.gem;
 
 __gshared HashTable gold;
 
-extern(C) void main()
+void main_legacy()
 {
 	import core.sys.posix.unistd;
 	import core.stdc.stdio;
