@@ -79,23 +79,18 @@ struct String
         length = index;
     }
 
-    // for C-string
     int compute()
     {
-        if (type == Type.cString)
+        import std.digest.murmurhash;
+        MurmurHash3!32 chasher;
+        reset();
+        while (hasNext())
         {
-            import std.digest.murmurhash;
-            MurmurHash3!32 chasher;
-            int i = 0;
-            while (data[i] != '\0')
-            {
-                chasher.put(data[i]);
-                i++;
-            }
-            auto hashed = chasher.finish();
-            return get32bits(&hashed[0]);
+            chasher.put(take());
+            next();
         }
-        assert(false);
+        auto hashed = chasher.finish();
+        return get32bits(&hashed[0]);
     }
 
     int hashOf()
