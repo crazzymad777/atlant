@@ -3,6 +3,7 @@ module atlant.main;
 extern(C) void main()
 {
     import atlant.utils.configuration;
+    import atlant.filesystem.scanner;
     import core.stdc.stdio;
 
     Configuration conf;
@@ -10,4 +11,7 @@ extern(C) void main()
     // parseArgs...
     printf("directory=%s\n", conf.directory.data);
     printf("port=%d\n", conf.port);
+
+    Scanner scanner = Scanner(conf.directory.data);
+    scanner.scan();
 }
