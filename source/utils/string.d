@@ -1,0 +1,111 @@
+module atlant.utils.string;
+
+// append
+// hashOf
+// auto-grow
+// equals
+// iterating...
+
+private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
+{
+    version (BigEndian)
+    {
+        return ((cast(uint) x[0]) << 24) | ((cast(uint) x[1]) << 16) | ((cast(uint) x[2]) << 8) | (cast(uint) x[3]);
+    }
+    else
+    {
+        return ((cast(uint) x[3]) << 24) | ((cast(uint) x[2]) << 16) | ((cast(uint) x[1]) << 8) | (cast(uint) x[0]);
+    }
+}
+
+struct String
+{
+    import  std.digest.murmurhash;
+    MurmurHash3!32 hasher;
+
+    enum Type
+    {
+        cString,
+        Cannonic
+    };
+    bool finalized = false;
+    int allocated_length;
+    char* data;
+    Type type;
+    int index;
+    int hash;
+    bool computed = false;
+
+    void cString(String* s, char* ptr)
+    {
+        s.finalized = true;
+        s.data = ptr;
+        s.type = Type.cString;
+        s.computed = false;
+    }
+
+    int put(char x)
+    {
+        assert(finalized == false);
+        if (index >= allocated_length)
+        {
+            // reallocate...
+            import core.stdc.stdlib;
+            int space = allocated_length + 1024;
+            data = cast(char*) realloc(data, space);
+            assert(data !is null);
+            allocated_length = space;
+        }
+        data[index] = x;
+        index++;
+
+        hasher.put(x);
+        return index;
+    }
+
+    void finalize()
+    {
+        assert(finalized == false);
+        finalized = true;
+        auto hashed = hasher.finish();
+        hash = get32bits(&hashed[0]);
+        computed = true;
+    }
+
+    // for C-string
+    int compute()
+    {
+        import std.digest.murmurhash;
+        MurmurHash3!32 chasher;
+        int i = 0;
+        while (data[i] != '\0')
+        {
+            chasher.put(data[i]);
+            i++;
+        }
+        auto hashed = chasher.finish();
+        return get32bits(&hashed[0]);
+    }
+
+    int hashOf()
+    {
+        if (type == Type.Cannonic)
+        {
+            assert(finalized == true);
+            return hash;
+        }
+
+        if (type == Type.cString)
+        {
+            if (computed)
+            {
+                return hash;
+            }
+            hash = compute();
+            computed = true;
+            return hash;
+        }
+
+        assert(false);
+    }
+}
