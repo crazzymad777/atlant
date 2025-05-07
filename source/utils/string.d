@@ -6,7 +6,6 @@ module atlant.utils.string;
 // equals
 // iterating...
 // reset, next, take
-// use, release
 
 private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
 {
@@ -38,23 +37,13 @@ struct String
     int index;
     int hash;
     bool computed = false;
-    int used = 0;
 
-    void use()
+    void drop()
     {
-        used++;
-    }
-
-    void release()
-    {
-        used--;
-        if (used <= 0)
+        if (allocated_length > 0)
         {
-            if (allocated_length > 0)
-            {
-                import core.stdc.stdlib;
-                free(data);
-            }
+            import core.stdc.stdlib;
+            free(data);
         }
     }
 
