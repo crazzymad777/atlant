@@ -9,7 +9,7 @@ struct TreeNode
         link
     }
 
-    static TreeNode* of(Type type, char* filename)
+    static TreeNode* of(Type type, char* filename, TreeNode* parent)
     {
         import core.stdc.stdlib;
         import core.stdc.string;
@@ -20,12 +20,32 @@ struct TreeNode
         node.type = type;
         node.filenameLength = strlen(filename);
         node.filename = strdup(filename);
+
+        if (parent is null)
+        {
+            node.uriPathLength = 0;
+            node.uriPath = cast(char*) malloc(char.sizeof * 1);
+            node.uriPath[0] = '\0';
+        }
+        else
+        {
+            node.uriPathLength = parent.uriPathLength + 1 + node.filenameLength;
+            node.uriPath = cast(char*) malloc(char.sizeof * (node.uriPathLength + 1));
+            memcpy(node.uriPath, parent.uriPath, parent.uriPathLength);
+            node.uriPath[parent.uriPathLength] ='/';
+            memcpy(&node.uriPath[parent.uriPathLength+1], node.filename, node.filenameLength);
+            node.uriPath[node.uriPathLength] = '\0';
+        }
+
         return node;
     }
 
     Type type;
     ulong filenameLength;
     char* filename;
+
+    ulong uriPathLength;
+    char* uriPath;
 
     TreeNode* firstChild;
     TreeNode* nextSibling;

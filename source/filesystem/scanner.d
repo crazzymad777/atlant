@@ -10,7 +10,7 @@ struct Scanner
     this(char* directory)
     {
         this.directory = directory;
-        this.root = TreeNode.of(TreeNode.Type.directory, cast(char*) "".ptr);
+        this.root = TreeNode.of(TreeNode.Type.directory, cast(char*) "".ptr, null);
     }
     char* directory;
     TreeNode* root;
@@ -46,16 +46,16 @@ struct Scanner
         {
             if (sibling.type == TreeNode.Type.file)
             {
-                printf("f %s\n", sibling.filename);
+                printf("f %s\n", sibling.uriPath);
             }
             if (sibling.type == TreeNode.Type.directory)
             {
-                printf("d %s\n", sibling.filename);
+                printf("d %s\n", sibling.uriPath);
                 showNode(sibling);
             }
             if (sibling.type == TreeNode.Type.link)
             {
-                printf("l %s\n", sibling.filename);
+                printf("l %s\n", sibling.uriPath);
             }
             sibling = sibling.nextSibling;
         }
@@ -95,13 +95,13 @@ struct Scanner
             if (entry.d_type == DT_REG)
             {
                 //printf("f %s\n", &entry.d_name[0]);
-                current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0], node);
             }
 
             if (entry.d_type == DT_DIR)
             {
                 //printf("d %s\n", &entry.d_name[0]);
-                current = TreeNode.of(TreeNode.Type.directory, &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.directory, &entry.d_name[0], node);
                 int fd = dirfd(dirptr);
                 chdir(&entry.d_name[0]);
                 scan(cast(char*) ".".ptr, current);
@@ -111,7 +111,7 @@ struct Scanner
             if (entry.d_type == DT_LNK)
             {
                 //printf("l %s\n", &entry.d_name[0]);
-                current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0], node);
             }
 
             if (current !is null)
