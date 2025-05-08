@@ -1,5 +1,7 @@
 module atlant.filesystem.scanner;
 
+import atlant.filesystem.tree;
+
 import core.sys.posix.dirent;
 extern(C) int dirfd(DIR *dirp);
 
@@ -8,19 +10,23 @@ struct Scanner
     this(char* directory)
     {
         this.directory = directory;
+        this.root = TreeNode.of(TreeNode.Type.directory, cast(char*) "".ptr);
     }
     char* directory;
+    TreeNode* root;
 
-    void scan(char* directory = null)
+    void scan(char* name = null, TreeNode* current = null)
     {
+        import core.stdc.string;
         import core.stdc.stdio;
 
-        if (directory is null)
+        if (name is null)
         {
-            directory = this.directory;
+            name = this.directory;
+            current = root;
         }
 
-        DIR* dirptr = opendir(directory);
+        DIR* dirptr = opendir(name);
 
         if (!dirptr)
         {
@@ -28,18 +34,49 @@ struct Scanner
             return;
         }
 
-        traverse(dirptr);
+        traverse(dirptr, current);
         closedir(dirptr);
     }
 
-    void traverse(DIR* dirptr)
+    void showNode(TreeNode* parent)
+    {
+        import core.stdc.stdio;
+        TreeNode* sibling = parent.firstChild;
+        while (sibling !is null)
+        {
+            if (sibling.type == TreeNode.Type.file)
+            {
+                printf("f %s\n", sibling.filename);
+            }
+            if (sibling.type == TreeNode.Type.directory)
+            {
+                printf("d %s\n", sibling.filename);
+                showNode(sibling);
+            }
+            if (sibling.type == TreeNode.Type.link)
+            {
+                printf("l %s\n", sibling.filename);
+            }
+            sibling = sibling.nextSibling;
+        }
+    }
+
+    void show()
+    {
+        showNode(root);
+    }
+
+    void traverse(DIR* dirptr, TreeNode* node)
     {
         import core.sys.posix.unistd;
         import core.stdc.string;
         import core.stdc.stdio;
         dirent* entry;
+
+        TreeNode* prev = null;
         while ((entry = readdir(dirptr)) !is null)
         {
+            TreeNode* current = null;
             if (strcmp("..", &entry.d_name[0]) == 0)
             {
                 continue;
@@ -57,21 +94,37 @@ struct Scanner
 
             if (entry.d_type == DT_REG)
             {
-                printf("f %s\n", &entry.d_name[0]);
+                //printf("f %s\n", &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0]);
             }
 
             if (entry.d_type == DT_DIR)
             {
+                //printf("d %s\n", &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.directory, &entry.d_name[0]);
                 int fd = dirfd(dirptr);
-                printf("d %s\n", &entry.d_name[0]);
                 chdir(&entry.d_name[0]);
-                scan(cast(char*) ".".ptr);
+                scan(cast(char*) ".".ptr, current);
                 fchdir(fd);
             }
 
             if (entry.d_type == DT_LNK)
             {
-                printf("l %s\n", &entry.d_name[0]);
+                //printf("l %s\n", &entry.d_name[0]);
+                current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0]);
+            }
+
+            if (current !is null)
+            {
+                if (prev is null)
+                {
+                    node.firstChild = current;
+                }
+                else
+                {
+                    prev.nextSibling = current;
+                }
+                prev = current;
             }
         }
     }
