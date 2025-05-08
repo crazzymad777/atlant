@@ -20,6 +20,8 @@ struct TreeNode
         node.type = type;
         node.filenameLength = strlen(filename);
         node.filename = strdup(filename);
+        node.directChildsNumber = 0;
+        node.childsNumber = -1;
 
         if (parent is null)
         {
@@ -60,4 +62,7 @@ struct TreeNode
 
     TreeNode* firstChild;
     TreeNode* nextSibling;
+
+    int directChildsNumber;
+    int childsNumber;
 }

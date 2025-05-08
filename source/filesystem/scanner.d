@@ -38,6 +38,30 @@ struct Scanner
         closedir(dirptr);
     }
 
+    int countChilds(TreeNode* parent)
+    {
+        import core.stdc.stdio;
+        TreeNode* sibling = parent.firstChild;
+        int number = parent.directChildsNumber;
+        while (sibling !is null)
+        {
+            if (sibling.type == TreeNode.Type.directory)
+            {
+                if (sibling.childsNumber == -1)
+                {
+                    number += countChilds(sibling);
+                }
+                else
+                {
+                    number += sibling.childsNumber;
+                }
+            }
+            sibling = sibling.nextSibling;
+        }
+        parent.childsNumber = number;
+        return number;
+    }
+
     void showNode(TreeNode* parent)
     {
         import core.stdc.stdio;
@@ -63,7 +87,9 @@ struct Scanner
 
     void show()
     {
+        import core.stdc.stdio;
         showNode(root);
+        printf("total=%d\n", root.childsNumber);
     }
 
     void traverse(DIR* dirptr, TreeNode* node)
@@ -116,6 +142,7 @@ struct Scanner
 
             if (current !is null)
             {
+                node.directChildsNumber++;
                 if (prev is null)
                 {
                     node.firstChild = current;
@@ -127,5 +154,7 @@ struct Scanner
                 prev = current;
             }
         }
+
+        countChilds(node);
     }
 }
