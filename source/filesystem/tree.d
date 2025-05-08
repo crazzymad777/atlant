@@ -29,11 +29,22 @@ struct TreeNode
         }
         else
         {
-            node.uriPathLength = parent.uriPathLength + 1 + node.filenameLength;
+            int slash = 0;
+            if (parent.uriPathLength > 0)
+            {
+                slash = 1;
+            }
+
+            node.uriPathLength = parent.uriPathLength + slash + node.filenameLength;
             node.uriPath = cast(char*) malloc(char.sizeof * (node.uriPathLength + 1));
-            memcpy(node.uriPath, parent.uriPath, parent.uriPathLength);
-            node.uriPath[parent.uriPathLength] ='/';
-            memcpy(&node.uriPath[parent.uriPathLength+1], node.filename, node.filenameLength);
+
+            if (slash > 0)
+            {
+                memcpy(node.uriPath, parent.uriPath, parent.uriPathLength);
+                node.uriPath[parent.uriPathLength] ='/';
+            }
+
+            memcpy(&node.uriPath[parent.uriPathLength + slash], node.filename, node.filenameLength);
             node.uriPath[node.uriPathLength] = '\0';
         }
 
