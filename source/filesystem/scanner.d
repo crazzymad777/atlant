@@ -94,6 +94,7 @@ struct Scanner
 
     void traverse(DIR* dirptr, TreeNode* node)
     {
+        import core.sys.posix.sys.stat;
         import core.sys.posix.unistd;
         import core.stdc.string;
         import core.stdc.stdio;
@@ -116,6 +117,22 @@ struct Scanner
             if (entry.d_type == DT_UNKNOWN)
             {
                 // WE should determine file type
+                stat_t s;
+                if (lstat(&entry.d_name[0], &s) == 0)
+                {
+                    if (S_ISDIR(s.st_mode))
+                    {
+                        entry.d_type = DT_DIR;
+                    }
+                    else if (S_ISREG(s.st_mode))
+                    {
+                        entry.d_type = DT_REG;
+                    }
+                    else if (S_ISLNK(s.st_mode))
+                    {
+                        entry.d_type = DT_LNK;
+                    }
+                }
             }
 
             if (entry.d_type == DT_REG)
