@@ -3,7 +3,7 @@ module atlant.main;
 import atlant.cache.hash_table;
 HashTable ht;
 
-extern(C) void main()
+extern(C) void main(int argc, char** argv)
 {
     import atlant.utils.configuration;
     import atlant.filesystem.scanner;
@@ -11,7 +11,7 @@ extern(C) void main()
 
     Configuration conf;
     defaultConfiguration(&conf);
-    // parseArgs...
+    parseArgs(&conf, argc, argv);
     printf("directory=%s\n", conf.directory.data);
     printf("port=%d\n", conf.port);
 
