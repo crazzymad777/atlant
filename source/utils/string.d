@@ -29,7 +29,7 @@ struct String
         cString,
         cannonic
     };
-    bool finalized = false;
+    bool sealed = false;
     int allocated_length;
     char* data; // one indirection
     int length;
@@ -51,7 +51,7 @@ struct String
     {
         assert(ptr !is null);
 
-        s.finalized = true;
+        s.sealed = true;
         s.data = ptr;
         s.type = Type.cString;
         s.computed = false;
@@ -59,7 +59,7 @@ struct String
 
     int put(char x)
     {
-        assert(finalized == false);
+        assert(sealed == false);
         if (type == Type.cannonic)
         {
             if (index >= allocated_length)
@@ -80,12 +80,10 @@ struct String
         assert(false);
     }
 
-    void finalize()
+    void seal()
     {
-        assert(finalized == false);
-        finalized = true;
-        // hash = compute();
-        // computed = true;
+        assert(sealed == false);
+        sealed = true;
         length = index;
     }
 
@@ -110,6 +108,7 @@ struct String
             return hash;
         }
         hash = compute();
+        length = index;
         computed = true;
         return hash;
     }
@@ -177,6 +176,6 @@ unittest
     {
         s2.put(x);
     }
-    s2.finalize();
+    s2.seal();
     assert(s2.hashOf() == 1586663183);
 }
