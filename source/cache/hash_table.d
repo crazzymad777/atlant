@@ -11,7 +11,7 @@ struct HashTable
     private ulong count;
     this(TreeNode* root)
     {
-        count = root.childsNumber;
+        count = root.childsNumber + 1; // +1 for root itself
         buckets = Array!(Bucket*)(count);
 
         int* capacity = fillCapacity(root);
@@ -34,7 +34,7 @@ struct HashTable
         TreeNode* sibling = parent.firstChild;
         while (sibling !is null)
         {
-            if (sibling.type == TreeNode.Type.file)
+            if (sibling.type == TreeNode.Type.file || sibling.type == TreeNode.Type.link)
             {
                 capacity[findBucketIndex(sibling.filename.hashOf())]++;
             }
@@ -43,10 +43,6 @@ struct HashTable
                 capacity[findBucketIndex(sibling.filename.hashOf())]++;
                 fillCapacityNode(sibling, capacity);
             }
-            // if (sibling.type == TreeNode.Type.link)
-            // {
-            //     printf("l %s\n", sibling.uriPath.data);
-            // }
             sibling = sibling.nextSibling;
         }
     }
