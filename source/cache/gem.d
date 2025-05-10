@@ -20,6 +20,7 @@ struct Gem
         gem.mime.type = String.Type.cannonic;
 
         getMime(&gem.mime, node.uriPath.data);
+        gem.mime.seal();
         return gem;
     }
 
@@ -33,5 +34,18 @@ struct Gem
         import core.stdc.stdlib;
         mime.drop();
         free(&this);
+    }
+
+    void show()
+    {
+        import core.stdc.stdio;
+        printf("%s : ", node.uriPath.data);
+        mime.reset();
+        while (mime.hasNext())
+        {
+            putchar(mime.take());
+            mime.next();
+        }
+        printf("\n");
     }
 }

@@ -109,4 +109,16 @@ struct HashTable
 		}
 		return bucket.find(entry);
 	}
+
+    void show()
+    {
+        for (int i = 0; i < count; i++)
+        {
+            auto bucket = getBucketByIndex(i);
+            if (bucket !is null)
+            {
+                bucket.show();
+            }
+        }
+    }
 }

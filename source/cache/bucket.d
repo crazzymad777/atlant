@@ -59,4 +59,12 @@ struct Bucket
 		}
 		return i != length ? gems.at(i) : null;
 	}
+
+	public void show()
+	{
+		for (long i = 0; i < length; i++)
+		{
+            gems.at(i).show();
+		}
+	}
 }
