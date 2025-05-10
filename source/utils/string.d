@@ -30,7 +30,7 @@ struct String
         cannonic
     };
     bool sealed = false;
-    int allocated_length;
+    long allocated_length;
     char* data; // one indirection
     long length = -1;
     Type type;
@@ -72,6 +72,19 @@ struct String
         s.allocated_length = stringLength + 1;
     }
 
+    static void cStringDup(String* s, char* origin)
+    {
+        import core.stdc.string;
+        //assert(ptr !is null);
+
+        // s.sealed = true;
+        s.data = strdup(origin);
+        s.type = Type.cString;
+        s.computed = false;
+        s.length = strlen(s.data);
+        s.allocated_length = s.length + 1;
+    }
+
     int put(char x)
     {
         assert(sealed == false);
@@ -81,7 +94,7 @@ struct String
             {
                 // reallocate...
                 import core.stdc.stdlib;
-                int space = allocated_length + 1024;
+                long space = allocated_length + 1024;
                 data = cast(char*) realloc(data, space);
                 assert(data !is null);
                 allocated_length = space;
