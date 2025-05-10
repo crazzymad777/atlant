@@ -21,8 +21,8 @@ private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
 
 struct String
 {
-    import std.digest.murmurhash;
-    MurmurHash3!32 hasher;
+    // import std.digest.murmurhash;
+    // MurmurHash3!32 hasher;
 
     enum Type
     {
@@ -74,7 +74,7 @@ struct String
             data[index] = x;
             index++;
 
-            hasher.put(x);
+            // hasher.put(x);
             return index;
         }
         assert(false);
@@ -84,9 +84,8 @@ struct String
     {
         assert(finalized == false);
         finalized = true;
-        auto hashed = hasher.finish();
-        hash = get32bits(&hashed[0]);
-        computed = true;
+        // hash = compute();
+        // computed = true;
         length = index;
     }
 
@@ -106,24 +105,13 @@ struct String
 
     int hashOf()
     {
-        if (type == Type.cannonic)
+        if (computed)
         {
-            assert(finalized == true);
             return hash;
         }
-
-        if (type == Type.cString)
-        {
-            if (computed)
-            {
-                return hash;
-            }
-            hash = compute();
-            computed = true;
-            return hash;
-        }
-
-        assert(false);
+        hash = compute();
+        computed = true;
+        return hash;
     }
 
     void reset()
