@@ -20,4 +20,5 @@ extern(C) void main()
     import atlant.cache.hash_table;
     HashTable ht = HashTable(scanner.root);
     ht.show();
+    // ht.drop();
 }

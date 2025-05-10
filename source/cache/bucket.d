@@ -67,4 +67,12 @@ struct Bucket
             gems.at(i).show();
 		}
 	}
+
+	public void drop()
+	{
+		for (long i = 0; i < length; i++)
+		{
+            gems.at(i).drop();
+		}
+	}
 }
