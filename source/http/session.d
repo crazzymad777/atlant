@@ -24,7 +24,19 @@ import atlant.cache.gem;
 struct Response
 {
     int status;
-    Gem* gem;
+    ResultType type;
+
+    enum ResultType
+    {
+        text,
+        gem
+    };
+
+    union
+    {
+        char[256] text;
+        Gem* gem;
+    }
 }
 
 // Data build(string...)(string args)
@@ -83,8 +95,9 @@ struct Session
 
                 for (int i = 0; i < count; i++)
                 {
+                    Response res;
                     Request req = parser.requests.front().value;
-                    Response res = handleRequest(req);
+                    handleRequest(req, &res);
 
                     char[24] x;
                     if (res.status == 200)
@@ -100,20 +113,36 @@ struct Session
                         snprintf(&x[0], 24, "HTTP/1.1 %d", res.status);
                     }
 
+                    char* data_to_response;
+                    char* mime;
+                    size_t length;
+
+                    if (res.type == Response.ResultType.gem)
+                    {
+                        data_to_response = res.gem.data;
+                        mime = res.gem.mime.data;
+                        length = res.gem.length;
+                    }
+                    else if (res.type == Response.ResultType.text)
+                    {
+                        import core.stdc.string;
+                        data_to_response = cast(char*) &res.text[0];
+                        mime = cast(char*) "text/plain";
+                        length = strlen(data_to_response);
+                    }
+
                     char[256] buffer;
-                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], res.gem.mime.data, res.gem.length);
+                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], mime, length);
 
-                    //Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
                     send(sockfd, &buffer[0], bytes, 0);
-                    //free(data.pointer);
-
                     if (req.method != HttpMethod.HEAD)
                     {
-                        send(sockfd, res.gem.data, res.gem.length, 0);
+                        send(sockfd, data_to_response, length, 0);
                     }
 
                     closeConnection &= req.closeConnection;
                     parser.requests.removeFront();
+                    // res.gem.clean();
                     req.s1.drop();
                 }
 
@@ -126,7 +155,7 @@ struct Session
             else if (status == 0)
             {
                 printf("Received %ld\n", status);
-                // break;
+                break;
             }
             else if (status == -1)
             {

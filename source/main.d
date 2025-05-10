@@ -37,7 +37,7 @@ import atlant.utils.string;
 import atlant.http.session;
 import atlant.cache.gem;
 
-Response handleRequest(Request req)
+void handleRequest(Request req, Response* res)
 {
     import atlant.utils.data;
     import core.stdc.stdio;
@@ -45,7 +45,11 @@ Response handleRequest(Request req)
 	auto gem = ht.getGem(&req.s1);
 	if (gem !is null)
 	{
-        return Response(200, gem);
+        *res = Response(200, Response.ResultType.gem, gem: gem);
+        return;
 	}
-	return Response(404, &notFound);
+	snprintf(cast(char*) res.text, 256, "Requested Resource /%s Not Found", req.s1.data);
+	res.type = Response.ResultType.text;
+	res.status = 404;
+	return;
 }
