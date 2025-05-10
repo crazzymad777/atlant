@@ -65,19 +65,6 @@ struct String
         s.length = strlen(ptr);
     }
 
-    static String staticCString(char* ptr)
-    {
-        import core.stdc.string;
-        assert(ptr !is null);
-        String s;
-        s.sealed = true;
-        s.data = ptr;
-        s.type = Type.cString;
-        s.computed = false;
-        s.length = strlen(ptr);
-        return s;
-    }
-
     static void cStringAlloc(String* s, long stringLength)
     {
         import core.stdc.stdlib;
