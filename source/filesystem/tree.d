@@ -55,15 +55,30 @@ struct TreeNode
     Type type;
     String filename;
     String uriPath;
-    //ulong filenameLength;
-    //char* filename;
-
-    //ulong uriPathLength;
-    //char* uriPath;
 
     TreeNode* firstChild;
     TreeNode* nextSibling;
 
     int directChildsNumber;
     int childsNumber;
+
+    void drop()
+    {
+        import core.stdc.stdlib;
+        if (type == Type.directory)
+        {
+            if (firstChild !is null)
+            {
+                firstChild.drop();
+            }
+        }
+
+        if (nextSibling !is null)
+        {
+            nextSibling.drop();
+        }
+        filename.drop();
+        uriPath.drop();
+        free(&this);
+    }
 }

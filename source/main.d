@@ -14,6 +14,7 @@ extern(C) void main()
 
     Scanner scanner = Scanner(conf.directory.data);
     scanner.scan();
+    scanner.detach(); // detach tree root
     scanner.show();
 
     import atlant.cache.hash_table;

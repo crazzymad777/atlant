@@ -18,9 +18,10 @@ struct Bucket
 	{
 		for (long i = 0; i < length; i++)
 		{
-			if (gems.at(i).hash == newGem.hash)
+            Gem* gem = gems.at(i);
+			if (gem.hash == newGem.hash)
 			{
-				gems.at(i).uniqueHash = false;
+				gem.uniqueHash = false;
 				newGem.uniqueHash = false;
 			}
 		}
@@ -41,7 +42,7 @@ struct Bucket
 				{
 					break;
 				}
-				else if (entry.equals(&gem.path))
+				else if (entry.equals(&gem.node.uriPath))
 				{
 					break;
 				}

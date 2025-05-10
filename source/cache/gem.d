@@ -1,12 +1,13 @@
 module atlant.cache.gem;
 
+import atlant.filesystem.tree;
 import atlant.utils.string;
 
 // Gem stores mime type and content
 struct Gem
 {
+    TreeNode* node;
     String mime;
-    String path;
     int hash;
     bool uniqueHash;
 }

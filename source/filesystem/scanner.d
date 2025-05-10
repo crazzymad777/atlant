@@ -12,6 +12,21 @@ struct Scanner
         this.directory = directory;
         this.root = TreeNode.of(TreeNode.Type.directory, cast(char*) "".ptr, null);
     }
+
+    ~this()
+    {
+        if (!detached)
+        {
+            root.drop();
+        }
+    }
+
+    void detach()
+    {
+        detached = true;
+    }
+
+    bool detached = false;
     char* directory;
     TreeNode* root;
 
