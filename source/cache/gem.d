@@ -9,5 +9,5 @@ struct Gem
     TreeNode* node;
     String mime;
     int hash;
-    bool uniqueHash;
+    bool uniqueHash; // unique hash in the Bucket
 }

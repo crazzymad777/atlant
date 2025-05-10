@@ -11,11 +11,14 @@ struct HashTable
     private ulong count;
     this(TreeNode* root)
     {
+        import core.stdc.stdlib;
         count = root.childsNumber + 1; // +1 for root itself
         buckets = Array!(Bucket*)(count);
 
         int* capacity = fillCapacity(root);
         capacity[findBucketIndex(root.filename.hashOf())]++;
+
+        free(capacity);
     }
 
     private int* fillCapacity(TreeNode* root)
