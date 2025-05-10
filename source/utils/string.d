@@ -32,7 +32,7 @@ struct String
     bool sealed = false;
     int allocated_length;
     char* data; // one indirection
-    int length;
+    long length = -1;
     Type type;
     int index;
     int hash;
@@ -49,12 +49,14 @@ struct String
 
     static void cString(String* s, char* ptr)
     {
+        import core.stdc.string;
         assert(ptr !is null);
 
         s.sealed = true;
         s.data = ptr;
         s.type = Type.cString;
         s.computed = false;
+        s.length = strlen(ptr);
     }
 
     int put(char x)
@@ -178,4 +180,11 @@ unittest
     }
     s2.seal();
     assert(s2.hashOf() == 1586663183);
+}
+
+unittest
+{
+    String s1;
+    String.cString(&s1, cast(char*) "hello world".ptr);
+    assert(s1.hashOf() == 1586663183);
 }
