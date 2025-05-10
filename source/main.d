@@ -15,4 +15,7 @@ extern(C) void main()
     Scanner scanner = Scanner(conf.directory.data);
     scanner.scan();
     scanner.show();
+
+    import atlant.cache.hash_table;
+    HashTable ht = HashTable(scanner.root);
 }

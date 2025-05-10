@@ -9,9 +9,46 @@ import atlant.cache.gem;
 struct HashTable
 {
     private ulong count;
-    this(TreeNode root)
+    this(TreeNode* root)
     {
         count = root.childsNumber;
+        buckets = Array!(Bucket*)(count);
+
+        int* capacity = fillCapacity(root);
+        capacity[findBucketIndex(root.filename.hashOf())]++;
+    }
+
+    private int* fillCapacity(TreeNode* root)
+    {
+        import core.stdc.stdlib;
+        import core.stdc.string;
+        int *bucketCapacity = cast(int*) malloc(int.sizeof * count);
+        memset(bucketCapacity, 0, int.sizeof * count);
+        fillCapacityNode(root, bucketCapacity);
+        return bucketCapacity;
+    }
+
+    void fillCapacityNode(TreeNode* parent, int *capacity)
+    {
+        import core.stdc.stdio;
+        TreeNode* sibling = parent.firstChild;
+        while (sibling !is null)
+        {
+            if (sibling.type == TreeNode.Type.file)
+            {
+                capacity[findBucketIndex(sibling.filename.hashOf())]++;
+            }
+            if (sibling.type == TreeNode.Type.directory)
+            {
+                capacity[findBucketIndex(sibling.filename.hashOf())]++;
+                fillCapacityNode(sibling, capacity);
+            }
+            // if (sibling.type == TreeNode.Type.link)
+            // {
+            //     printf("l %s\n", sibling.uriPath.data);
+            // }
+            sibling = sibling.nextSibling;
+        }
     }
 
     import atlant.cache.bucket;
