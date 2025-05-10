@@ -43,3 +43,22 @@ int getMime(String* s1, char* filename)
     }
     return -1;
 }
+
+int readFile(String* s1, char** data, size_t* length)
+{
+    import core.stdc.stdlib;
+    import core.stdc.stdio;
+    FILE* fp = fopen(s1.data, "r");
+    if (fp !is null)
+    {
+        fseek(fp, 0, SEEK_END);
+        *length = ftell(fp);
+        *data = cast(char*) malloc(*length);
+        fseek(fp, 0, SEEK_SET);
+        fread(*data, *length, 1, fp);
+        fclose(fp);
+        return 0;
+    }
+    return -1;
+}
+

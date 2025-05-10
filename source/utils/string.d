@@ -111,8 +111,9 @@ struct String
     void seal()
     {
         assert(sealed == false);
-        sealed = true;
         length = index;
+        put('\0');
+        sealed = true;
     }
 
     int compute()

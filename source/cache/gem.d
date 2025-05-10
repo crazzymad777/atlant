@@ -21,6 +21,7 @@ struct Gem
 
         getMime(&gem.mime, node.uriPath.data);
         gem.mime.seal();
+        readFile(&gem.node.uriPath, &gem.data, &gem.length);
         return gem;
     }
 
@@ -28,6 +29,8 @@ struct Gem
     String mime;
     int hash;
     bool uniqueHash; // unique hash in the Bucket
+    char* data;
+    size_t length;
 
     void drop()
     {
