@@ -19,33 +19,34 @@ extern(C) void* run_session(void* data)
     return null;
 }
 
+import atlant.cache.gem;
+
 struct Response
 {
     int status;
-    Data body;
-    string mime;
+    Gem* gem;
 }
 
-Data build(string...)(string args)
-{
-    import core.stdc.stdlib;
-    import core.stdc.string;
-    int count = 0;
-    foreach(x; args)
-    {
-        count += x.length;
-    }
-    Data data = Data(malloc(count), count);
-    count = 0;
-    ubyte* dest = cast(ubyte*) data.pointer;
-
-    foreach(x; args)
-    {
-        memcpy(dest, x.ptr, x.length);
-        dest += x.length;
-    }
-    return data;
-}
+// Data build(string...)(string args)
+// {
+//     import core.stdc.stdlib;
+//     import core.stdc.string;
+//     int count = 0;
+//     foreach(x; args)
+//     {
+//         count += x.length;
+//     }
+//     Data data = Data(malloc(count), count);
+//     count = 0;
+//     ubyte* dest = cast(ubyte*) data.pointer;
+//
+//     foreach(x; args)
+//     {
+//         memcpy(dest, x.ptr, x.length);
+//         dest += x.length;
+//     }
+//     return data;
+// }
 
 struct Session
 {
@@ -100,7 +101,7 @@ struct Session
                     }
 
                     char[256] buffer;
-                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: text-plain\r\nContent-Length: %lu\r\n\r\n", &x[0], res.body.length);
+                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], res.gem.mime.data, res.gem.length);
 
                     //Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
                     send(sockfd, &buffer[0], bytes, 0);
@@ -108,7 +109,7 @@ struct Session
 
                     if (req.method != HttpMethod.HEAD)
                     {
-                        send(sockfd, res.body.pointer, res.body.length, 0);
+                        send(sockfd, res.gem.data, res.gem.length, 0);
                     }
 
                     closeConnection &= req.closeConnection;
