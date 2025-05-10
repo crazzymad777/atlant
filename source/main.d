@@ -19,6 +19,18 @@ extern(C) void main()
 
     import atlant.cache.hash_table;
     HashTable ht = HashTable(scanner.root);
-    ht.show();
+    // ht.show();
     // ht.drop();
+
+    import atlant.http.server;
+    Server server;
+	server.listen(conf.port);
+}
+
+import atlant.http.session;
+
+Response handleRequest(Request req)
+{
+	import atlant.utils.data;
+	return Response(404, Data.fromString("Requested Resource Not Found"), "text/plain");
 }
