@@ -99,18 +99,16 @@ struct Session
                         snprintf(&x[0], 24, "HTTP/1.1 %d", res.status);
                     }
 
-                    char[128] buffer;
-                    int bytes = snprintf(&buffer[0], 128, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: application/octet-stream\r\nContent-Length: %lu\r\n\r\n", &x[0], res.body.length);
+                    char[256] buffer;
+                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: text-plain\r\nContent-Length: %lu\r\n\r\n", &x[0], res.body.length);
 
                     //Data data = build(head, "Server: atlant/0.0.1\r\nContent-Type: ", res.mime, "\r\nContent-Length: ", to!string(res.body.length), "\r\n\r\n");
-                    long b = send(sockfd, &buffer[0], bytes, 0);
-                    printf("Sent %ld\n", b);
+                    send(sockfd, &buffer[0], bytes, 0);
                     //free(data.pointer);
 
                     if (req.method != HttpMethod.HEAD)
                     {
-                        b = send(sockfd, res.body.pointer, res.body.length, 0);
-                        printf("Sent %ld\n", b);
+                        send(sockfd, res.body.pointer, res.body.length, 0);
                     }
 
                     closeConnection &= req.closeConnection;
