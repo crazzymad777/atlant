@@ -59,6 +59,19 @@ struct String
         s.length = strlen(ptr);
     }
 
+    static void cStringAlloc(String* s, int stringLength)
+    {
+        import core.stdc.stdlib;
+        //assert(ptr !is null);
+
+        // s.sealed = true;
+        s.data = cast(char*) malloc(stringLength + 1);
+        s.type = Type.cString;
+        s.computed = false;
+        s.length = stringLength;
+        s.allocated_length = stringLength + 1;
+    }
+
     int put(char x)
     {
         assert(sealed == false);
