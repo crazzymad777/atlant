@@ -39,7 +39,13 @@ import atlant.cache.gem;
 
 Response handleRequest(Request req)
 {
-    //import atlant.utils.string;
-	import atlant.utils.data;
+    import atlant.utils.data;
+    import core.stdc.stdio;
+
+	auto gem = ht.getGem(&req.s1);
+	if (gem !is null)
+	{
+        return Response(200, gem);
+	}
 	return Response(404, &notFound);
 }

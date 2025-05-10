@@ -33,18 +33,24 @@ struct String
     long allocated_length;
     char* data; // one indirection
     long length = -1;
-    Type type;
+    Type type = Type.cannonic;
     int index;
     int hash;
     bool computed = false;
+    bool detached = false;
 
     void drop()
     {
-        if (allocated_length > 0)
+        if (allocated_length > 0 && !detached)
         {
             import core.stdc.stdlib;
             free(data);
         }
+    }
+
+    void detach()
+    {
+        detached = true;
     }
 
     static void cString(String* s, char* ptr)

@@ -2,6 +2,7 @@ module atlant.http.parser;
 
 import atlant.http.session;
 import atlant.http.chunk;
+import atlant.utils.string;
 import atlant.utils.list;
 
 enum HeaderField
@@ -14,7 +15,7 @@ struct Request
 {
     HttpMethod method;
     bool closeConnection;
-    char* path;
+    String s1;
 }
 
 struct Parser
@@ -29,8 +30,8 @@ struct Parser
     }
 
     List!Request requests;
-    int index = 0;
-    char[1024] memory;
+    // int index = 0;
+    String memory;
     private Item item = Item.Method;
     Request current = Request();
     private HeaderField header;
@@ -47,13 +48,13 @@ struct Parser
                 if (chunk.buffer[i] == ' ')
                 {
                     import core.stdc.string;
-                    memory[index] = '\0';
+                    memory.seal();
 
-                    if (strcmp(memory.ptr, "HEAD".ptr) == 0)
+                    if (strcmp(memory.data, "HEAD".ptr) == 0)
                     {
                         current.method = HttpMethod.HEAD;
                     }
-                    else if (strcmp(memory.ptr, "GET".ptr) == 0)
+                    else if (strcmp(memory.data, "GET".ptr) == 0)
                     {
                         current.method = HttpMethod.GET;
                     }
@@ -66,18 +67,27 @@ struct Parser
             {
                 if (chunk.buffer[i] == ' ')
                 {
-                    import core.stdc.string;
-                    memory[index] = '\0';
-                    current.path = strdup(&memory[0]);
+                    // Seal, assign, detach
+                    memory.seal();
+                    current.s1 = memory;
+                    memory.detach();
                     item = Item.HttpVersion;
                     reset = true;
+                }
+                else if (chunk.buffer[i] == '/')
+                {
+                    if (memory.index == 0)
+                    {
+                        // Omit leading slash
+                        reset = true;
+                    }
                 }
             }
             else if (item == Item.HttpVersion)
             {
                 if (chunk.buffer[i] == '\n')
                 {
-                    if (index > 0 && memory[index-1] == '\r')
+                    if (memory.index > 0 && memory.data[memory.index-1] == '\r')
                     {
                         item = Item.Header;
                         reset = true;
@@ -88,7 +98,7 @@ struct Parser
             {
                 if (chunk.buffer[i] == '\n')
                 {
-                    if (index > 0 && memory[index-1] == '\r')
+                    if (memory.index > 0 && memory.data[memory.index-1] == '\r')
                     {
                         requests.add(current);
                         current = Request();
@@ -102,9 +112,9 @@ struct Parser
                 if (chunk.buffer[i] == ':')
                 {
                     import core.stdc.string;
-                    memory[index] = '\0';
+                    memory.seal();
 
-                    if (strcmp(memory.ptr, "Connection".ptr) == 0)
+                    if (strcmp(memory.data, "Connection".ptr) == 0)
                     {
                         header = HeaderField.CONNECTION;
                     }
@@ -117,24 +127,24 @@ struct Parser
                 import core.stdc.string;
                 if (chunk.buffer[i] == '\n')
                 {
-                    if (index > 0 && memory[index-1] == '\r')
+                    if (memory.index > 0 && memory.data[memory.index-1] == '\r')
                     {
                         // heading and trailing whitespaces are optional
-                        char* ptr = &memory[0];
-                        if (isspace(memory[0]))
+                        char* ptr = &memory.data[0];
+                        if (isspace(memory.data[0]))
                         {
-                            ptr = &memory[1];
+                            ptr = &memory.data[1];
                         }
 
-                        if (index > 1)
+                        if (memory.index > 1)
                         {
-                            if (isspace(memory[index-2]))
+                            if (isspace(memory.data[memory.index-2]))
                             {
-                                memory[index-2] = '\0';
+                                memory.data[memory.index-2] = '\0';
                             }
                             else
                             {
-                                memory[index-1] = '\0';
+                                memory.data[memory.index-1] = '\0';
                             }
                         }
 
@@ -159,12 +169,13 @@ struct Parser
 
             if (reset)
             {
-                index = 0;
+                memory.drop();
+                memory = String();
+                //index = 0;
             }
             else
             {
-                memory[index] = chunk.buffer[i];
-                index++;
+                memory.put(chunk.buffer[i]);
             }
         }
         return count;

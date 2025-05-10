@@ -114,6 +114,7 @@ struct Session
 
                     closeConnection &= req.closeConnection;
                     parser.requests.removeFront();
+                    req.s1.drop();
                 }
 
                 if (closeConnection)
