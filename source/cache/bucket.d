@@ -7,6 +7,15 @@ import atlant.cache.gem;
 // Bucket contains gems with same perfect hash
 struct Bucket
 {
+	static Bucket* of(long capacity)
+	{
+		import core.stdc.stdlib;
+		Bucket* bucket = cast(Bucket*) malloc(Bucket.sizeof);
+		bucket.gems = Array!(Gem*)(capacity);
+		bucket.length = 0;
+		return bucket;
+	}
+
 	public this(long capacity)
 	{
 		gems = Array!(Gem*)(capacity);

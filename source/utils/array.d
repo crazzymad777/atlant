@@ -6,15 +6,12 @@ struct Array(T)
     {
         import core.stdc.stdlib: malloc;
         this.length = length;
-        this.payload = cast(T*) malloc(T.sizeof * length);
-        for (int i = 0; i < length; i++) payload[i] = T.init;
-        assert(payload !is null);
-    }
-
-    ~this()
-    {
-        import core.stdc.stdlib: free;
-        free(payload);
+        if (length > 0)
+        {
+            this.payload = cast(T*) malloc(T.sizeof * length);
+            for (int i = 0; i < length; i++) payload[i] = T.init;
+            assert(payload !is null);
+        }
     }
 
     T at(long index)
@@ -31,4 +28,10 @@ struct Array(T)
 
     private size_t length;
     private T* payload;
+
+    void drop()
+    {
+        import core.stdc.stdlib: free;
+        free(payload);
+    }
 }

@@ -14,9 +14,12 @@ struct Gem
         assert(gem !is null);
         gem.node = node;
         gem.uniqueHash = true;
-        gem.hash = node.filename.hashOf();
+        gem.hash = node.uriPath.hashOf();
 
-        getMime(&gem.mime, node.filename.data);
+        gem.mime = String();
+        gem.mime.type = String.Type.cannonic;
+
+        getMime(&gem.mime, node.uriPath.data);
         return gem;
     }
 

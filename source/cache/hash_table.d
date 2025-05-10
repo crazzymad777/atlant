@@ -16,9 +16,39 @@ struct HashTable
         buckets = Array!(Bucket*)(count);
 
         int* capacity = fillCapacity(root);
-        capacity[findBucketIndex(root.filename.hashOf())]++;
+        capacity[findBucketIndex(root.uriPath.hashOf())]++;
 
+        put(root, capacity);
         free(capacity);
+    }
+
+    private void put(TreeNode* root, int *capacity)
+    {
+        putNode(root, capacity);
+    }
+
+    private void putNode(TreeNode* parent, int *capacity)
+    {
+        TreeNode* sibling = parent.firstChild;
+        while (sibling !is null)
+        {
+            if (sibling.type == TreeNode.Type.file || sibling.type == TreeNode.Type.link)
+            {
+                auto index = findBucketIndex(sibling.uriPath.hashOf());
+                Bucket* bucket = buckets.at(index);
+                if (bucket is null)
+                {
+                    bucket = Bucket.of(capacity[index]);
+                    buckets.put(index, bucket);
+                }
+                bucket.put(Gem.of(sibling));
+            }
+            if (sibling.type == TreeNode.Type.directory)
+            {
+                putNode(sibling, capacity);
+            }
+            sibling = sibling.nextSibling;
+        }
     }
 
     private int* fillCapacity(TreeNode* root)
@@ -39,11 +69,11 @@ struct HashTable
         {
             if (sibling.type == TreeNode.Type.file || sibling.type == TreeNode.Type.link)
             {
-                capacity[findBucketIndex(sibling.filename.hashOf())]++;
+                capacity[findBucketIndex(sibling.uriPath.hashOf())]++;
             }
             if (sibling.type == TreeNode.Type.directory)
             {
-                capacity[findBucketIndex(sibling.filename.hashOf())]++;
+                capacity[findBucketIndex(sibling.uriPath.hashOf())]++;
                 fillCapacityNode(sibling, capacity);
             }
             sibling = sibling.nextSibling;
