@@ -59,12 +59,12 @@ struct String
         s.length = strlen(ptr);
     }
 
-    static void cStringAlloc(String* s, int stringLength)
+    static void cStringAlloc(String* s, long stringLength)
     {
         import core.stdc.stdlib;
         //assert(ptr !is null);
 
-        // s.sealed = true;
+        s.sealed = true;
         s.data = cast(char*) malloc(stringLength + 1);
         s.type = Type.cString;
         s.computed = false;
@@ -77,7 +77,7 @@ struct String
         import core.stdc.string;
         //assert(ptr !is null);
 
-        // s.sealed = true;
+        s.sealed = true;
         s.data = strdup(origin);
         s.type = Type.cString;
         s.computed = false;

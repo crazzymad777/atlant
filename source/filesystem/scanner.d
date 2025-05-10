@@ -70,16 +70,16 @@ struct Scanner
         {
             if (sibling.type == TreeNode.Type.file)
             {
-                printf("f %s\n", sibling.uriPath);
+                printf("f %s\n", sibling.uriPath.data);
             }
             if (sibling.type == TreeNode.Type.directory)
             {
-                printf("d %s\n", sibling.uriPath);
+                printf("d %s\n", sibling.uriPath.data);
                 showNode(sibling);
             }
             if (sibling.type == TreeNode.Type.link)
             {
-                printf("l %s\n", sibling.uriPath);
+                printf("l %s\n", sibling.uriPath.data);
             }
             sibling = sibling.nextSibling;
         }

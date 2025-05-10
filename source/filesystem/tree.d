@@ -1,5 +1,7 @@
 module atlant.filesystem.tree;
 
+import atlant.utils.string;
+
 struct TreeNode
 {
     enum Type
@@ -18,47 +20,46 @@ struct TreeNode
         node.firstChild = null;
         node.nextSibling = null;
         node.type = type;
-        node.filenameLength = strlen(filename);
-        node.filename = strdup(filename);
+        String.cStringDup(&node.filename, filename);
         node.directChildsNumber = 0;
         node.childsNumber = -1;
 
         if (parent is null)
         {
-            node.uriPathLength = 0;
-            node.uriPath = cast(char*) malloc(char.sizeof * 1);
-            node.uriPath[0] = '\0';
+            String.cStringAlloc(&node.uriPath, 0);
+            node.uriPath.data[0] = '\0';
         }
         else
         {
             int slash = 0;
-            if (parent.uriPathLength > 0)
+            if (parent.uriPath.length > 0)
             {
                 slash = 1;
             }
 
-            node.uriPathLength = parent.uriPathLength + slash + node.filenameLength;
-            node.uriPath = cast(char*) malloc(char.sizeof * (node.uriPathLength + 1));
+            String.cStringAlloc(&node.uriPath, parent.uriPath.length + slash + node.filename.length);
 
             if (slash > 0)
             {
-                memcpy(node.uriPath, parent.uriPath, parent.uriPathLength);
-                node.uriPath[parent.uriPathLength] ='/';
+                memcpy(node.uriPath.data, parent.uriPath.data, parent.uriPath.length);
+                node.uriPath.data[parent.uriPath.length] ='/';
             }
 
-            memcpy(&node.uriPath[parent.uriPathLength + slash], node.filename, node.filenameLength);
-            node.uriPath[node.uriPathLength] = '\0';
+            memcpy(&node.uriPath.data[parent.uriPath.length + slash], node.filename.data, node.filename.length);
+            node.uriPath.data[node.uriPath.length] = '\0';
         }
 
         return node;
     }
 
     Type type;
-    ulong filenameLength;
-    char* filename;
+    String filename;
+    String uriPath;
+    //ulong filenameLength;
+    //char* filename;
 
-    ulong uriPathLength;
-    char* uriPath;
+    //ulong uriPathLength;
+    //char* uriPath;
 
     TreeNode* firstChild;
     TreeNode* nextSibling;
