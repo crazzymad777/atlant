@@ -85,7 +85,7 @@ struct String
         s.allocated_length = s.length + 1;
     }
 
-    int put(char x)
+    int put(char x, int alloc_step = 1024)
     {
         assert(sealed == false);
         if (type == Type.cannonic)
@@ -94,7 +94,7 @@ struct String
             {
                 // reallocate...
                 import core.stdc.stdlib;
-                long space = allocated_length + 1024;
+                long space = allocated_length + alloc_step;
                 data = cast(char*) realloc(data, space);
                 assert(data !is null);
                 allocated_length = space;
