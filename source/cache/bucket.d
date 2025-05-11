@@ -42,9 +42,10 @@ struct Bucket
 	Gem* find(String* entry)
 	{
         int i = 0;
+		Gem* gem;
 		for (; i < length; i++)
 		{
-            Gem* gem = gems.at(i);
+            gem = gems.at(i);
 			if (gem.hash == entry.hashOf())
 			{
 				if (gem.uniqueHash)
@@ -57,7 +58,7 @@ struct Bucket
 				}
 			}
 		}
-		return i != length ? gems.at(i) : null;
+		return i != length ? gem : null;
 	}
 
 	public void show()
