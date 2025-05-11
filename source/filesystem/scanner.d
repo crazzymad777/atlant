@@ -37,8 +37,10 @@ struct Scanner
 
         if (name is null)
         {
+            import core.sys.posix.unistd;
             name = this.directory;
             current = root;
+            chdir(name);
         }
 
         DIR* dirptr = opendir(name);
