@@ -3,29 +3,15 @@ module atlant.main;
 import atlant.cache.hash_table;
 HashTable ht;
 
-// extern(C) void f1()
-// {
-//     import core.sys.posix.unistd;
-//     import core.stdc.stdio;
-//     printf("exit: pid: %d\n", getpid());
-// }
-
 extern(C) void main(int argc, char** argv)
 {
-    // import core.sys.posix.unistd;
-    // import core.stdc.stdlib;
     import core.stdc.stdio;
-    // printf("pid: %d\n", getpid());
-    // atexit(&f1);
-
     import atlant.utils.configuration;
     import atlant.filesystem.scanner;
 
     Configuration conf;
     defaultConfiguration(&conf);
     parseArgs(&conf, argc, argv);
-    //printf("directory=%s\n", conf.directory.data);
-    //printf("port=%d\n", conf.port);
 
     Scanner scanner = Scanner(conf.directory.data);
     scanner.scan();

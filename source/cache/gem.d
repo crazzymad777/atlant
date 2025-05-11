@@ -21,8 +21,15 @@ struct Gem
 
         getMime(&gem.mime, node.uriPath.data);
         gem.mime.seal();
-        readFile(&gem.node.uriPath, &gem.data, &gem.length);
-        return gem;
+        int status = readFile(&gem.node.uriPath, &gem.data, &gem.length);
+
+        if (status == 0)
+        {
+            return gem;
+        }
+
+        gem.drop();
+        return null;
     }
 
     TreeNode* node;

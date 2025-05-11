@@ -41,7 +41,17 @@ struct HashTable
                     bucket = Bucket.of(capacity[index]);
                     buckets.put(index, bucket);
                 }
-                bucket.put(Gem.of(sibling));
+                Gem* gem = Gem.of(sibling);
+
+                if (gem !is null)
+                {
+                    bucket.put(gem);
+                }
+                else
+                {
+                    import core.stdc.stdio;
+                    printf("Load of gem /%s failed\n", sibling.uriPath.data);
+                }
             }
             if (sibling.type == TreeNode.Type.directory)
             {

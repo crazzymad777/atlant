@@ -12,5 +12,5 @@ dub build
 
 ## Run
 ```
-./atlant -p 8080 -w /var/www/html -x index.html -o http_bind=127.0.0.1 -o directory_list=yes
+./atlant -p 8080 -w /var/www/html
 ```
