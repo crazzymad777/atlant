@@ -23,6 +23,7 @@ struct TreeNode
         String.cStringDup(&node.filename, filename);
         node.directChildsNumber = 0;
         node.childsNumber = -1;
+        node.index = null;
 
         if (parent is null)
         {
@@ -61,6 +62,8 @@ struct TreeNode
 
     int directChildsNumber;
     int childsNumber;
+
+    TreeNode* index;
 
     void drop()
     {

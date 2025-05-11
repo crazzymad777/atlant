@@ -121,6 +121,8 @@ struct Scanner
         while ((entry = readdir(dirptr)) !is null)
         {
             TreeNode* current = null;
+            bool index = false;
+
             if (strcmp("..", &entry.d_name[0]) == 0)
             {
                 continue;
@@ -129,6 +131,11 @@ struct Scanner
             if (strcmp(".", &entry.d_name[0]) == 0)
             {
                 continue;
+            }
+
+            if (strcmp("index.html", &entry.d_name[0]) == 0)
+            {
+                index = true;
             }
 
             if (entry.d_type == DT_UNKNOWN)
@@ -157,6 +164,10 @@ struct Scanner
             {
                 //printf("f %s\n", &entry.d_name[0]);
                 current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0], node);
+                if (index)
+                {
+                    node.index = current;
+                }
             }
 
             if (entry.d_type == DT_DIR)

@@ -9,53 +9,74 @@ import atlant.cache.gem;
 struct HashTable
 {
     private ulong count;
+    private int* capacity;
     this(TreeNode* root)
     {
         import core.stdc.stdlib;
         count = root.childsNumber + 1; // +1 for root itself
         buckets = Array!(Bucket*)(count);
 
-        int* capacity = fillCapacity(root);
+        capacity = fillCapacity(root);
         capacity[findBucketIndex(root.uriPath.hashOf())]++;
 
-        put(root, capacity);
+        put(root);
         free(capacity);
     }
 
-    private void put(TreeNode* root, int *capacity)
+    private void put(TreeNode* root)
     {
-        putNode(root, capacity);
+        putNode(root);
+        if (root.index !is null)
+        {
+            putLink(root, root.index);
+        }
     }
 
-    private void putNode(TreeNode* parent, int *capacity)
+    private void putLink(TreeNode* node, TreeNode* link)
+    {
+        auto index = findBucketIndex(node.uriPath.hashOf());
+        Bucket* bucket = buckets.at(index);
+        if (bucket is null)
+        {
+            bucket = Bucket.of(capacity[index]);
+            buckets.put(index, bucket);
+        }
+        Gem* gem = Gem.of(node, link);
+
+        if (gem !is null)
+        {
+            bucket.put(gem);
+        }
+        else
+        {
+            import core.stdc.stdio;
+            if (node != link)
+            {
+                printf("Load of gem /%s (linked to /%s) failed\n", node.uriPath.data, link.uriPath.data);
+            }
+            else
+            {
+                printf("Load of gem /%s failed\n", node.uriPath.data, link.uriPath.data);
+            }
+        }
+    }
+
+    private void putNode(TreeNode* parent)
     {
         TreeNode* sibling = parent.firstChild;
         while (sibling !is null)
         {
             if (sibling.type == TreeNode.Type.file || sibling.type == TreeNode.Type.link)
             {
-                auto index = findBucketIndex(sibling.uriPath.hashOf());
-                Bucket* bucket = buckets.at(index);
-                if (bucket is null)
-                {
-                    bucket = Bucket.of(capacity[index]);
-                    buckets.put(index, bucket);
-                }
-                Gem* gem = Gem.of(sibling);
-
-                if (gem !is null)
-                {
-                    bucket.put(gem);
-                }
-                else
-                {
-                    import core.stdc.stdio;
-                    printf("Load of gem /%s failed\n", sibling.uriPath.data);
-                }
+                putLink(sibling, sibling);
             }
             if (sibling.type == TreeNode.Type.directory)
             {
-                putNode(sibling, capacity);
+                putNode(sibling);
+                if (sibling.index !is null)
+                {
+                    putLink(sibling, sibling.index);
+                }
             }
             sibling = sibling.nextSibling;
         }
@@ -67,11 +88,13 @@ struct HashTable
         import core.stdc.string;
         int *bucketCapacity = cast(int*) malloc(int.sizeof * count);
         memset(bucketCapacity, 0, int.sizeof * count);
-        fillCapacityNode(root, bucketCapacity);
+
+        capacity = bucketCapacity;
+        fillCapacityNode(root);
         return bucketCapacity;
     }
 
-    void fillCapacityNode(TreeNode* parent, int *capacity)
+    void fillCapacityNode(TreeNode* parent)
     {
         import core.stdc.stdio;
         TreeNode* sibling = parent.firstChild;
@@ -84,7 +107,7 @@ struct HashTable
             if (sibling.type == TreeNode.Type.directory)
             {
                 capacity[findBucketIndex(sibling.uriPath.hashOf())]++;
-                fillCapacityNode(sibling, capacity);
+                fillCapacityNode(sibling);
             }
             sibling = sibling.nextSibling;
         }

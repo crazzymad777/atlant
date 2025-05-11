@@ -6,7 +6,7 @@ import atlant.utils.string;
 // Gem stores mime type and content
 struct Gem
 {
-    static Gem* of(TreeNode* node)
+    static Gem* of(TreeNode* node, TreeNode* link)
     {
         import atlant.filesystem.utils;
         import core.stdc.stdlib;
@@ -19,9 +19,9 @@ struct Gem
         gem.mime = String();
         gem.mime.type = String.Type.cannonic;
 
-        getMime(&gem.mime, node.uriPath.data);
+        getMime(&gem.mime, link.uriPath.data);
         gem.mime.seal();
-        int status = readFile(&gem.node.uriPath, &gem.data, &gem.length);
+        int status = readFile(&link.uriPath, &gem.data, &gem.length);
 
         if (status == 0)
         {
