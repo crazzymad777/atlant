@@ -65,7 +65,7 @@ struct Parser
             }
             else if (item == Item.Path)
             {
-                if (chunk.buffer[i] == ' ')
+                if (chunk.buffer[i] == ' ' || chunk.buffer[i] == '?')
                 {
                     if (memory.index > 0)
                     {
