@@ -11,21 +11,32 @@ int getMime(String* s1, char* filename)
         int pid = fork();
         if (pid > 0)
         {
-            char buf;
-            long i = read(pipefd[0], &buf, 1);
-            while (i > 0)
+            import core.sys.posix.sys.wait;
+
+            int status = 0;
+            wait(&status);
+            if (status == 0)
             {
-                import core.stdc.stdio;
-                if (buf == '\n') break;
-                int j = s1.put(buf, 32);
-                i = read(pipefd[0], &buf, 1);
+                char buf;
+                long i = read(pipefd[0], &buf, 1);
+                while (i > 0)
+                {
+                    import core.stdc.stdio;
+                    if (buf == '\n') break;
+                    int j = s1.put(buf, 32);
+                    i = read(pipefd[0], &buf, 1);
+                }
+                close(pipefd[0]);
+                return 0;
             }
+
             close(pipefd[0]);
-            return 0;
+            close(pipefd[1]);
         }
         else if (pid == 0)
         {
             import core.sys.posix.fcntl;
+            import core.stdc.stdlib;
             import core.stdc.stdio;
 
             // redirect stdout of Child
@@ -34,6 +45,7 @@ int getMime(String* s1, char* filename)
             execlp("file".ptr, "file".ptr, "-ibL".ptr, filename, null);
             // if it was success then code not reached
             perror("execlp failed");
+            exit(-1);
         }
         else
         {
