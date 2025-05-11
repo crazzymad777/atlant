@@ -30,7 +30,7 @@ struct Scanner
     char* directory;
     TreeNode* root;
 
-    void scan(char* name = null, TreeNode* current = null)
+    int scan(char* name = null, TreeNode* current = null)
     {
         import core.stdc.string;
         import core.stdc.stdio;
@@ -46,11 +46,12 @@ struct Scanner
         if (!dirptr)
         {
             perror(directory);
-            return;
+            return -1;
         }
 
         traverse(dirptr, current);
         closedir(dirptr);
+        return 0;
     }
 
     int countChilds(TreeNode* parent)

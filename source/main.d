@@ -14,14 +14,17 @@ extern(C) void main(int argc, char** argv)
     parseArgs(&conf, argc, argv);
 
     Scanner scanner = Scanner(conf.directory.data);
-    scanner.scan();
-    scanner.detach(); // detach tree root
+    if (scanner.scan() == 0)
+    {
+        scanner.detach(); // detach tree root
 
-    ht = HashTable(scanner.root);
+        ht = HashTable(scanner.root);
 
-    import atlant.http.server;
-    Server server;
-	server.listen(conf.port);
+        import atlant.http.server;
+        Server server;
+        server.listen(conf.port);
+        return;
+    }
 }
 
 import atlant.utils.string;
