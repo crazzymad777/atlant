@@ -67,6 +67,17 @@ struct Parser
             {
                 if (chunk.buffer[i] == ' ')
                 {
+                    if (memory.index > 0)
+                    {
+                        // Omit trailing slash
+                        char x = ' ';
+                        memory.unget(&x);
+                        if (x != '/')
+                        {
+                            memory.put(x);
+                        }
+                    }
+
                     // Seal, assign, detach
                     memory.seal();
                     current.s1 = memory;
@@ -80,6 +91,15 @@ struct Parser
                     {
                         // Omit leading slash
                         reset = true;
+                    }
+                    else
+                    {
+                        char x = ' ';
+                        memory.unget(&x);
+                        if (x != '/')
+                        {
+                            memory.put(x);
+                        }
                     }
                 }
             }

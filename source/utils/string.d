@@ -114,6 +114,23 @@ struct String
         assert(false);
     }
 
+    int unget(char* x = null)
+    {
+        assert(sealed == false);
+        if (type == Type.cannonic)
+        {
+            if (index > 0)
+            {
+                if (x !is null)
+                {
+                    *x = data[index-1];
+                }
+                index--;
+            }
+        }
+        return index;
+    }
+
     void seal()
     {
         assert(sealed == false);
