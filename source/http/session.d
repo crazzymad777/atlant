@@ -39,26 +39,7 @@ struct Response
     }
 }
 
-// Data build(string...)(string args)
-// {
-//     import core.stdc.stdlib;
-//     import core.stdc.string;
-//     int count = 0;
-//     foreach(x; args)
-//     {
-//         count += x.length;
-//     }
-//     Data data = Data(malloc(count), count);
-//     count = 0;
-//     ubyte* dest = cast(ubyte*) data.pointer;
-//
-//     foreach(x; args)
-//     {
-//         memcpy(dest, x.ptr, x.length);
-//         dest += x.length;
-//     }
-//     return data;
-// }
+import atlant.http.server: doWork;
 
 struct Session
 {
@@ -79,7 +60,7 @@ struct Session
         import core.stdc.errno;
 
         Chunk chunk;
-        while (true)
+        while (doWork)
         {
             chunk.length = chunk.buffer.sizeof;
             import core.sys.posix.sys.socket;
@@ -87,7 +68,7 @@ struct Session
             long status = recv(sockfd, &chunk.buffer, chunk.buffer.sizeof, 0);
             if (status > 0)
             {
-                printf("Received %ld\n", status);
+                // printf("Received %ld\n", status);
                 import atlant.main;
                 chunk.length = status;
                 int count = parser.feed(&chunk);
@@ -148,13 +129,13 @@ struct Session
 
                 if (closeConnection)
                 {
-                    printf("DO NOT KEEP CONNECTION\n");
+                    // printf("DO NOT KEEP CONNECTION\n");
                     break;
                 }
             }
             else if (status == 0)
             {
-                printf("Received %ld\n", status);
+                // printf("Received %ld\n", status);
                 break;
             }
             else if (status == -1)
@@ -166,18 +147,24 @@ struct Session
                 break;
             }
         }
+
+        // printf("close %d\n", sockfd);
         close(sockfd);
     }
 
-    void spawn()
+    int spawn()
     {
         import core.sys.posix.unistd;
         import core.stdc.stdio;
         int pid = fork();
         if (pid == 0)
         {
-            printf("Session job (%d) had started.\n", getpid());
+            // import core.sys.posix.signal;
+            // signal(SIGINT, SIG_DFL);
+
+            // printf("Session job (%d) had started.\n", getpid());
             run_session(cast(void*) &this);
         }
+        return pid;
     }
 }

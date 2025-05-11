@@ -7,6 +7,14 @@ extern(C) void* run_server_instance(void* data)
     return null;
 }
 
+bool doWork = true;
+
+extern (C) void termination_handler(int signum) nothrow @nogc
+{
+    import core.sys.posix.unistd;
+    doWork = false;
+}
+
 struct ServerInstance
 {
     private int sockfd = -1;
@@ -46,7 +54,21 @@ struct ServerInstance
             return;
         }
 
-        while (true)
+        // printf("signal: %d \n", getpid());
+        import core.sys.posix.signal;
+        if (signal(SIGINT, &termination_handler) == SIG_IGN)
+        {
+            signal(SIGINT, SIG_IGN);
+        }
+
+        import core.sys.posix.sys.time;
+        timeval timeout;
+        timeout.tv_sec = 600;
+        timeout.tv_usec = 0;
+        setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, timeout.sizeof);
+
+        int pid = -1;
+        while (doWork)
         {
             int conn = accept(sockfd, null, null);
             if (conn == -1)
@@ -64,11 +86,19 @@ struct ServerInstance
             {
                 import atlant.http.session;
                 Session session = Session(conn);
-                session.spawn();
+                pid = session.spawn();
+                if (pid == 0)
+                {
+                    break;
+                }
             }
         }
 
-        close(sockfd);
+        if (pid != 0)
+        {
+            // printf("close main %d\n", sockfd);
+            close(sockfd);
+        }
 
         // join here session threads...
     }
