@@ -63,7 +63,7 @@ struct ServerInstance
 
         import core.sys.posix.sys.time;
         timeval timeout;
-        timeout.tv_sec = 600;
+        timeout.tv_sec = 5;
         timeout.tv_usec = 0;
         setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, timeout.sizeof);
 
