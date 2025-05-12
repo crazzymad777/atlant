@@ -160,9 +160,29 @@ struct Scanner
                 }
             }
 
+            if (entry.d_type == DT_LNK)
+            {
+                import atlant.utils.stat;
+                //printf("l %s\n", &entry.d_name[0]);
+                stat_t s;
+                if (stat(&entry.d_name[0], &s) == 0)
+                {
+                    if (S_ISDIR(s.st_mode))
+                    {
+                        // printf("ld %s\n", &entry.d_name[0]);
+                        entry.d_type = DT_DIR;
+                    }
+                    else
+                    {
+                        // printf("l_ %s\n", &entry.d_name[0]);
+                        current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0], node);
+                    }
+                }
+            }
+
             if (entry.d_type == DT_REG)
             {
-                //printf("f %s\n", &entry.d_name[0]);
+                // printf("f %s\n", &entry.d_name[0]);
                 current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0], node);
                 if (index)
                 {
@@ -172,18 +192,12 @@ struct Scanner
 
             if (entry.d_type == DT_DIR)
             {
-                //printf("d %s\n", &entry.d_name[0]);
+                // printf("d %s\n", &entry.d_name[0]);
                 current = TreeNode.of(TreeNode.Type.directory, &entry.d_name[0], node);
                 int fd = dirfd(dirptr);
                 chdir(&entry.d_name[0]);
                 scan(cast(char*) ".".ptr, current);
                 fchdir(fd);
-            }
-
-            if (entry.d_type == DT_LNK)
-            {
-                //printf("l %s\n", &entry.d_name[0]);
-                current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0], node);
             }
 
             if (current !is null)
