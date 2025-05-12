@@ -19,6 +19,60 @@ private uint get32bits()(scope const(ubyte)* x) @nogc nothrow pure @system
     }
 }
 
+private int fromHex(char x)
+{
+    if (x >= '0' && x <= '9')
+    {
+        return x-'0';
+    }
+    if (x >= 'A' && x <= 'F')
+    {
+        return x-'A'+0xA;
+    }
+    if (x >= 'a' && x <= 'f')
+    {
+        return x-'a'+0xA;
+    }
+    return -1;
+}
+
+void decodeURI(String* origin, String* dest)
+{
+    int percent = -1;
+    int high;
+    origin.reset();
+    while (origin.hasNext())
+    {
+        char s = origin.take();
+        if (s == '%')
+        {
+            percent = 0;
+        }
+        else
+        {
+            if (percent == -1)
+            {
+                dest.put(s);
+            }
+            else if (percent == 0)
+            {
+                high = fromHex(s);
+                percent++;
+            }
+            else if (percent == 1)
+            {
+                int low = fromHex(s);
+                if (high != -1 && low != -1)
+                {
+                    dest.put(cast(char) (high * 0x10 + low));
+                }
+                percent = -1;
+            }
+        }
+        origin.next();
+    }
+}
+
 struct String
 {
     // import std.digest.murmurhash;
