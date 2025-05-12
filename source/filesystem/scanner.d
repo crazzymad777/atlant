@@ -43,7 +43,7 @@ struct Scanner
             chdir(name);
         }
 
-        DIR* dirptr = opendir(name);
+        DIR* dirptr = opendir(".".ptr);
 
         if (!dirptr)
         {
