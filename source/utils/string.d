@@ -71,6 +71,7 @@ void decodeURI(String* origin, String* dest)
         }
         origin.next();
     }
+    dest.seal();
 }
 
 struct String
