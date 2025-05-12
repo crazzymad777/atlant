@@ -170,7 +170,10 @@ struct Scanner
                     if (S_ISDIR(s.st_mode))
                     {
                         // printf("ld %s\n", &entry.d_name[0]);
-                        entry.d_type = DT_DIR;
+
+                        // How to solve recursion?
+                        // entry.d_type = DT_DIR;
+                        current = TreeNode.of(TreeNode.Type.link, &entry.d_name[0], node);
                     }
                     else
                     {
