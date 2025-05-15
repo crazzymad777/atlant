@@ -1,5 +1,6 @@
 module atlant.filesystem.scanner;
 
+import atlant.utils.configuration;
 import atlant.filesystem.tree;
 
 import core.sys.posix.dirent;
@@ -7,8 +8,10 @@ extern(C) int dirfd(DIR *dirp);
 
 struct Scanner
 {
-    this(char* directory)
+    private Configuration* conf;
+    this(Configuration* conf, char* directory)
     {
+        this.conf = conf;
         this.directory = directory;
         this.root = TreeNode.of(TreeNode.Type.directory, cast(char*) "".ptr, null);
     }
@@ -133,9 +136,17 @@ struct Scanner
                 continue;
             }
 
-            if (strcmp("index.html", &entry.d_name[0]) == 0)
+            auto x = conf.listOfIndices.front();
+            int indexWeight = 1;
+            while (x !is null)
             {
-                index = true;
+                if (strcmp(x.value, &entry.d_name[0]) == 0)
+                {
+                    index = true;
+                    break;
+                }
+                x = x.next;
+                indexWeight++;
             }
 
             if (entry.d_type == DT_UNKNOWN)
@@ -189,7 +200,11 @@ struct Scanner
                 current = TreeNode.of(TreeNode.Type.file, &entry.d_name[0], node);
                 if (index)
                 {
-                    node.index = current;
+                    if (node.indexWeight == 0 || indexWeight < node.indexWeight)
+                    {
+                        node.index = current;
+                        node.indexWeight = indexWeight;
+                    }
                 }
             }
 

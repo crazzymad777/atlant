@@ -24,6 +24,7 @@ struct TreeNode
         node.directChildsNumber = 0;
         node.childsNumber = -1;
         node.index = null;
+        node.indexWeight = 0;
 
         if (parent is null)
         {
@@ -64,6 +65,7 @@ struct TreeNode
     int childsNumber;
 
     TreeNode* index;
+    int indexWeight;
 
     void drop()
     {

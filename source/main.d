@@ -13,7 +13,7 @@ extern(C) void main(int argc, char** argv)
     defaultConfiguration(&conf);
     parseArgs(&conf, argc, argv);
 
-    Scanner scanner = Scanner(conf.directory.data);
+    Scanner scanner = Scanner(&conf, conf.directory.data);
     if (scanner.scan() == 0)
     {
         scanner.detach(); // detach tree root

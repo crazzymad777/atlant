@@ -68,4 +68,12 @@ struct List(T)
             length--;
         }
     }
+
+    void clear()
+    {
+        while (length > 0)
+        {
+            removeFront();
+        }
+    }
 }

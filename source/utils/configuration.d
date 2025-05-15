@@ -1,11 +1,16 @@
 module atlant.utils.configuration;
 
 import atlant.utils.string;
+import atlant.utils.list;
+
+char* indexHtml = cast(char*) "index.html".ptr;
+char* indexHtm = cast(char*) "index.htm".ptr;
 
 struct Configuration
 {
-	// bool defaultIndex;
 	String directory;
+	List!(char*) listOfIndices;
+	bool defaultIndex;
 	// bool enableDirectoryList;
 	// bool lazyLoad;
 	// bool defaultBindAddresses;
@@ -21,6 +26,9 @@ struct Configuration
 void* defaultConfiguration(Configuration* conf)
 {
 	import core.sys.posix.unistd: getcwd;
+	conf.defaultIndex = true;
+	conf.listOfIndices.add(indexHtml);
+	conf.listOfIndices.add(indexHtm);
 	conf.port = 8080;
 	// conf.enableDirectoryList = true;
 	// conf.lazyLoad = false;
@@ -36,8 +44,8 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 		WorkingDirectory,
 		// Option,
 		// HttpBindAddress,
-		Port
-		// AddIndex
+		Port,
+		AddIndex
 	};
 
 	Option next = Option.None;
@@ -59,6 +67,15 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 				import core.stdc.stdlib;
 				conf.port = atoi(argv[i]);
 			}
+			else if (next == Option.AddIndex)
+			{
+				if (conf.defaultIndex)
+				{
+					conf.defaultIndex = false;
+					conf.listOfIndices.clear();
+				}
+				conf.listOfIndices.add(argv[i]);
+			}
 			next = Option.None;
 			nextValue = false;
 			continue;
@@ -69,7 +86,14 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			printf("Use: %s [OPTIONS]\n", argv[0]);
 			printf("-p, --port - specify HTTP PORT\n");
 			printf("-w, --working-directory - set application root directory\n");
+			printf("-x, --add-index - define files which will be used as an index\n");
 			exit(0);
+		}
+
+		if (strcmp("--add-index", argv[i]) == 0 || strcmp("-x", argv[i]) == 0)
+		{
+			nextValue = true;
+			next = Option.AddIndex;
 		}
 
 		if (strcmp("--working-directory", argv[i]) == 0 || strcmp("-w", argv[i]) == 0)
