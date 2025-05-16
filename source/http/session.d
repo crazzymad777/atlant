@@ -108,7 +108,7 @@ struct Session
                     {
                         import core.stdc.string;
                         data_to_response = cast(char*) &res.text[0];
-                        mime = cast(char*) "text/plain";
+                        mime = cast(char*) "text/plain; charset=utf-8";
                         length = strlen(data_to_response);
                     }
 
