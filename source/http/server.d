@@ -38,6 +38,10 @@ struct ServerInstance
             return;
         }
 
+        int v = 1;
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
+
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         servaddr.sin_port = htons(cast(ushort) port);
@@ -97,7 +101,8 @@ struct ServerInstance
         if (pid != 0)
         {
             // printf("close main %d\n", sockfd);
-            close(sockfd);
+            // close(sockfd);
+            shutdown(sockfd, SHUT_RDWR);
         }
 
         // join here session threads...

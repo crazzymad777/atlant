@@ -148,8 +148,8 @@ struct Session
             }
         }
 
-        // printf("close %d\n", sockfd);
-        close(sockfd);
+        import core.sys.posix.sys.socket;
+        shutdown(sockfd, SHUT_RDWR);
     }
 
     int spawn()
