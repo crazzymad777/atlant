@@ -20,7 +20,50 @@ struct ServerInstance
     private int sockfd = -1;
     int port;
 
-    void serve()
+    int try6()
+    {
+        import core.sys.posix.netinet.in_;
+        import core.sys.posix.sys.socket;
+        import core.sys.posix.unistd;
+
+        import core.stdc.string;
+        import core.stdc.stdio;
+        import core.stdc.errno;
+
+        sockaddr_in6 servaddr;
+        int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
+        if (sockfd == -1)
+        {
+            printf("socket (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
+            return -1;
+        }
+
+        int v = 1;
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
+
+        servaddr.sin6_family = AF_INET6;
+        servaddr.sin6_addr = in6addr_any;
+        servaddr.sin6_port = htons(cast(ushort) port);
+
+        if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
+        {
+            printf("bind (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
+            return -2;
+        }
+
+        if ((listen(sockfd, 0)) != 0)
+        {
+            printf("listen (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
+            return -2;
+        }
+
+        this.sockfd = sockfd;
+
+        return 0;
+    }
+
+    int try4()
     {
         import core.sys.posix.netinet.in_;
         import core.sys.posix.sys.socket;
@@ -35,7 +78,7 @@ struct ServerInstance
         if (sockfd == -1)
         {
             printf("socket failed: %s, %d\n", strerror(errno), errno);
-            return;
+            return -1;
         }
 
         int v = 1;
@@ -49,13 +92,34 @@ struct ServerInstance
         if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
         {
             printf("bind failed: %s, %d\n", strerror(errno), errno);
-            return;
+            return -2;
         }
 
         if ((listen(sockfd, 0)) != 0)
         {
             printf("listen failed: %s, %d\n", strerror(errno), errno);
-            return;
+            return -2;
+        }
+
+        this.sockfd = sockfd;
+
+        return 0;
+    }
+
+    void serve()
+    {
+        import core.sys.posix.sys.socket;
+        import core.sys.posix.unistd;
+        import core.stdc.string;
+        import core.stdc.stdio;
+        import core.stdc.errno;
+
+        if (try6() == -1)
+        {
+            if (try4() < 0)
+            {
+                return;
+            }
         }
 
         // printf("signal: %d \n", getpid());
@@ -65,6 +129,7 @@ struct ServerInstance
             signal(SIGINT, SIG_IGN);
         }
 
+        int sockfd = this.sockfd;
         import core.sys.posix.sys.time;
         timeval timeout;
         timeout.tv_sec = 5;
@@ -101,8 +166,7 @@ struct ServerInstance
         if (pid != 0)
         {
             // printf("close main %d\n", sockfd);
-            // close(sockfd);
-            shutdown(sockfd, SHUT_RDWR);
+            close(sockfd);
         }
 
         // join here session threads...
