@@ -66,10 +66,10 @@ struct ServerInstance
     int port;
     bool anyaddr;
 
-    int try6()
+    int tryFamily(int V = 6)()
     {
         import core.sys.posix.sys.socket;
-        family = AF_INET6;
+        family = V == 6 ? AF_INET6 : AF_INET;
         import core.sys.posix.netinet.in_;
         import core.sys.posix.unistd;
 
@@ -77,8 +77,16 @@ struct ServerInstance
         import core.stdc.stdio;
         import core.stdc.errno;
 
+        static if (V == 6)
+        {
         sockaddr_in6 servaddr;
-        int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
+        }
+        else
+        {
+        sockaddr_in servaddr;
+        }
+
+        int sockfd = socket(family, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
             perror("socket");
@@ -91,24 +99,51 @@ struct ServerInstance
 
         bool success = false;
 
-        servaddr.sin6_family = AF_INET6;
+        static if (V == 6)
+        {
+        servaddr.sin6_family = cast(ushort) family;
         servaddr.sin6_port = htons(cast(ushort) port);
+        }
+        else
+        {
+        servaddr.sin_family = cast(ushort) family;
+        servaddr.sin_port = htons(cast(ushort) port);
+        }
 
         if (addr is null)
         {
-            servaddr.sin6_addr = in6addr_any;
+            static if (V == 6)
+            {
+                servaddr.sin6_addr = in6addr_any;
+            }
+            else
+            {
+                servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            }
             success = true;
             anyaddr = true;
         }
 
         if (!success)
         {
-            if (inet_pton(AF_INET6, addr, &servaddr.sin6_addr) == 1)
+            static if (V == 6)
             {
-                success = true;
+                if (inet_pton(family, addr, &servaddr.sin6_addr) == 1)
+                {
+                    success = true;
+                }
+            }
+            else
+            {
+                if (inet_pton(family, addr, &servaddr.sin_addr) == 1)
+                {
+                    success = true;
+                }
             }
         }
 
+        static if (V == 6)
+        {
         if (!success)
         {
             if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
@@ -131,6 +166,7 @@ struct ServerInstance
                 success = true;
             }
         }
+        }
 
         if (success)
         {
@@ -151,65 +187,6 @@ struct ServerInstance
         return 0;
     }
 
-    int try4()
-    {
-        import core.sys.posix.sys.socket;
-        family = AF_INET;
-        import core.sys.posix.netinet.in_;
-        import core.sys.posix.unistd;
-
-        import core.stdc.string;
-        import core.stdc.stdio;
-        import core.stdc.errno;
-
-        sockaddr_in servaddr;
-        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sockfd == -1)
-        {
-            perror("socket");
-            return -1;
-        }
-
-        int v = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
-
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(cast(ushort) port);
-
-        bool success = false;
-
-        if (addr is null)
-        {
-            servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-            success = true;
-            anyaddr = true;
-        }
-        else
-        {
-            if (inet_pton(AF_INET, addr, &servaddr.sin_addr) == 1)
-            {
-                success = true;
-            }
-        }
-
-        if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-        {
-            perror("bind");
-            return -2;
-        }
-
-        if ((listen(sockfd, 0)) != 0)
-        {
-            perror("listen");
-            return -2;
-        }
-
-        this.sockfd = sockfd;
-
-        return 0;
-    }
-
     void serve()
     {
         import core.sys.posix.sys.socket;
@@ -218,9 +195,9 @@ struct ServerInstance
         import core.stdc.stdio;
         import core.stdc.errno;
 
-        if (try6() == -1)
+        if (tryFamily!6() == -1)
         {
-            if (try4() < 0)
+            if (tryFamily!4() < 0)
             {
                 return;
             }
