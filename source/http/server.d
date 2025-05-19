@@ -172,23 +172,67 @@ struct ServerInstance
         }
         }
 
+        bool silent = false;
+
+        if (!success)
+        {
+            import core.sys.posix.netdb;
+
+            addrinfo* addrinfo;
+            int result = getaddrinfo(addr, null, null, &addrinfo);
+
+            if (result == 0)
+            {
+                int pid;
+                // char[INET6_ADDRSTRLEN] addrbuf;
+                // int i = 0;
+                while (addrinfo !is null)
+                {
+                    // inet_ntop(AF_INET6, addrinfo.ai_addr, &addrbuf[0], addrbuf.sizeof);
+                    // printf("%d %s\n", i, &addrbuf[0]);
+
+                    pid = fork();
+                    if (pid == 0)
+                    {
+                        success = true;
+                        silent = true;
+                        break;
+                    }
+                    addrinfo = addrinfo.ai_next;
+                    // i++;
+                }
+
+                if (pid != 0)
+                {
+                    import core.sys.posix.sys.wait;
+                    while (wait(null) > 0) {}
+                    return -2;
+                }
+            }
+            else
+            {
+                perror("getaddrinfo");
+            }
+        }
+
         if (success)
         {
             if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
             {
-                perror("bind");
+                if (!silent) perror("bind");
                 return -2;
             }
-        }
 
-        if ((listen(sockfd, 0)) != 0)
-        {
-            perror("listen");
-            return -2;
-        }
+            if ((listen(sockfd, 0)) != 0)
+            {
+                if (!silent) perror("listen");
+                return -2;
+            }
 
-        this.sockfd = sockfd;
-        return 0;
+            this.sockfd = sockfd;
+            return 0;
+        }
+        return -2;
     }
 
     void serve()
@@ -199,12 +243,19 @@ struct ServerInstance
         import core.stdc.stdio;
         import core.stdc.errno;
 
-        if (tryFamily!6() == -1)
+        int status = tryFamily!6();
+        if (status == -1)
         {
-            if (tryFamily!4() < 0)
+            status = tryFamily!4();
+            if (status < 0)
             {
                 return;
             }
+        }
+
+        if (status != 0)
+        {
+            return;
         }
 
         // printf("signal: %d \n", getpid());
