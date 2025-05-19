@@ -1,11 +1,61 @@
 module atlant;
 
+const PROGRAM_NAME = "atlant";
+const VERSION = "0.0.1";
+
+const SERVER_STRING = PROGRAM_NAME ~ "/" ~ VERSION;
+
 import atlant.utils.string;
 import atlant.http.session;
 import atlant.cache.gem;
 
 import atlant.cache.hash_table;
 HashTable ht;
+
+import core.stdc.stdio;
+FILE* pidfile(char* filename)
+{
+    FILE* f = null;
+    if (filename !is null)
+    {
+        f = fopen(filename, "w");
+        if (f !is null)
+        {
+            import core.sys.posix.unistd;
+            fprintf(f, "%d", getpid());
+            fclose(f);
+        }
+        else
+        {
+            perror(filename);
+        }
+    }
+    return f;
+}
+
+FILE* accesslog = null;
+
+void openlog(char* filename)
+{
+    if (filename is null)
+    {
+        return;
+    }
+
+    accesslog = fopen(filename, "a");
+    if (accesslog is null)
+    {
+        perror(filename);
+    }
+}
+
+void closelog()
+{
+    if (accesslog !is null)
+    {
+        fclose(accesslog);
+    }
+}
 
 void handleRequest(Request req, Response* res)
 {

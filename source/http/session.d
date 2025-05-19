@@ -44,8 +44,12 @@ import atlant.http.server: doWork;
 
 struct Session
 {
+    import core.sys.posix.netinet.in_;
+    char[INET6_ADDRSTRLEN] addrbuf;
+    // int addrport = 0;
     Parser parser;
     int sockfd;
+
     this(int sockfd)
     {
         this.sockfd = sockfd;
@@ -53,6 +57,11 @@ struct Session
 
     void serve()
     {
+        import core.stdc.time;
+        char[256] timestamp;
+        time_t now;
+        tm* tmptr;
+
         import core.stdc.stdlib;
         import core.stdc.string;
         import core.stdc.stdio;
@@ -77,6 +86,8 @@ struct Session
 
                 for (int i = 0; i < count; i++)
                 {
+                    now = time(null);
+                    tmptr = localtime(&now);
                     Response res;
                     Request req = parser.requests.front().value;
                     handleRequest(req, &res);
@@ -120,13 +131,33 @@ struct Session
                         length = res.array.size() - 1;
                     }
 
+                    import atlant: SERVER_STRING;
                     char[256] buffer;
-                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], mime, length);
+                    int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], SERVER_STRING.ptr, mime, length);
 
                     send(sockfd, &buffer[0], bytes, 0);
+                    char* method = cast(char*) "-".ptr;
                     if (req.method != HttpMethod.HEAD)
                     {
                         send(sockfd, data_to_response, length, 0);
+                        if (req.method == HttpMethod.GET)
+                        {
+                            method = cast(char*) "GET".ptr;
+                        }
+                    }
+                    else
+                    {
+                        method = cast(char*) "HEAD".ptr;
+                    }
+
+                    import atlant: accesslog;
+                    if (accesslog !is null)
+                    {
+                        timestamp[0] = '-';
+                        timestamp[1] = '\0';
+                        strftime(&timestamp[0], timestamp.sizeof, "%Y-%m-%dT%H:%M:%S%z", tmptr);
+                        fprintf(accesslog, "%s %s %s /%s %d %lu\n", &addrbuf[0], &timestamp[0], method, req.s1.data, res.status, length);
+                        fflush(accesslog);
                     }
 
                     closeConnection &= req.closeConnection;
@@ -163,16 +194,26 @@ struct Session
         close(sockfd);
     }
 
-    int spawn()
+    int spawn(int family, sockaddr_in6 clientaddr)
     {
-        import core.sys.posix.unistd;
         import core.stdc.stdio;
+        if (inet_ntop(family, cast(sockaddr*) &clientaddr, &addrbuf[0], addrbuf.sizeof) is null)
+        {
+
+            perror("inet_ntop");
+            addrbuf[0] = '-';
+            addrbuf[1] = '\0';
+            // addrport = clientaddr.sin6_port;
+        }
+        // printf("%s\n", &addrbuf[0]);
+
+        import core.sys.posix.unistd;
+
         int pid = fork();
         if (pid == 0)
         {
             // import core.sys.posix.signal;
             // signal(SIGINT, SIG_DFL);
-
             // printf("Session job (%d) had started.\n", getpid());
             run_session(cast(void*) &this);
         }

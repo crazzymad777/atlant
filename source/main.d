@@ -8,10 +8,13 @@ extern(C) void main(int argc, char** argv)
     import core.stdc.stdio;
     import atlant.utils.configuration;
     import atlant.filesystem.scanner;
+    import atlant: pidfile, openlog, closelog;
 
     Configuration conf;
     defaultConfiguration(&conf);
     parseArgs(&conf, argc, argv);
+    pidfile(conf.pidfile);
+    openlog(conf.accesslog);
 
     Scanner scanner = Scanner(&conf, conf.directory.data);
     if (scanner.scan() == 0)
@@ -23,6 +26,9 @@ extern(C) void main(int argc, char** argv)
         import atlant.http.server;
         Server server;
         server.listen(&conf);
+        closelog();
         return;
     }
+    closelog();
+    return;
 }

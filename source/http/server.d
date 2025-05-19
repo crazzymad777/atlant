@@ -20,13 +20,15 @@ extern (C) void termination_handler(int signum) nothrow @nogc
 struct ServerInstance
 {
     private int sockfd = -1;
+    int family;
     char* addr;
     int port;
 
     int try6()
     {
-        import core.sys.posix.netinet.in_;
         import core.sys.posix.sys.socket;
+        family = AF_INET6;
+        import core.sys.posix.netinet.in_;
         import core.sys.posix.unistd;
 
         import core.stdc.string;
@@ -68,6 +70,8 @@ struct ServerInstance
         {
             if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
             {
+                family = AF_INET; // actual family is IPv4
+
                 servaddr.sin6_family = AF_INET6;
                 servaddr.sin6_addr.s6_addr[0x0a] = 0xff;
                 servaddr.sin6_addr.s6_addr[0x0b] = 0xff;
@@ -106,8 +110,9 @@ struct ServerInstance
 
     int try4()
     {
-        import core.sys.posix.netinet.in_;
         import core.sys.posix.sys.socket;
+        family = AF_INET;
+        import core.sys.posix.netinet.in_;
         import core.sys.posix.unistd;
 
         import core.stdc.string;
@@ -191,10 +196,13 @@ struct ServerInstance
         timeout.tv_usec = 0;
         setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, timeout.sizeof);
 
+        import core.sys.posix.netinet.in_;
+        sockaddr_in6 clientaddr;
+        uint addrlen;
         int pid = -1;
         while (doWork)
         {
-            int conn = accept(sockfd, null, null);
+            int conn = accept(sockfd, cast(sockaddr*) &clientaddr, &addrlen);
             if (conn == -1)
             {
                 if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ECONNABORTED || errno == EMFILE || errno == ENFILE || errno == ENOBUFS || errno == ENOMEM || errno == EPERM || errno == EPROTO)
@@ -209,7 +217,7 @@ struct ServerInstance
             {
                 import atlant.http.session;
                 Session session = Session(conn);
-                pid = session.spawn();
+                pid = session.spawn(family, clientaddr);
                 if (pid == 0)
                 {
                     break;

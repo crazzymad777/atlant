@@ -17,6 +17,9 @@ struct Configuration
 	bool defaultBindAddresses;
 	int port;
 
+	char* accesslog;
+	char* pidfile;
+
 	~this()
 	{
 		import core.stdc.stdlib;
@@ -35,6 +38,8 @@ void* defaultConfiguration(Configuration* conf)
 	// conf.enableDirectoryList = true;
 	// conf.lazyLoad = false;
 	String.cString(&conf.directory, getcwd(null, 0));
+	conf.accesslog = null;
+	conf.pidfile = null;
 	return conf;
 }
 
@@ -47,7 +52,9 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 		// Option,
 		HttpBindAddress,
 		Port,
-		AddIndex
+		AddIndex,
+		AccessLog,
+		PidFile
 	};
 
 	Option next = Option.None;
@@ -86,6 +93,14 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 				}
 				conf.listOfAddresses.add(argv[i]);
 			}
+			else if (next == Option.AccessLog)
+			{
+				conf.accesslog = argv[i];
+			}
+			else if (next == Option.PidFile)
+			{
+				conf.pidfile = argv[i];
+			}
 			next = Option.None;
 			nextValue = false;
 			continue;
@@ -98,6 +113,9 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			printf("-p, --port - specify HTTP PORT\n");
 			printf("-w, --working-directory - set application root directory\n");
 			printf("-x, --add-index - define files which will be used as an index\n");
+			printf("--access-log - specify access log file\n");
+			printf("--pidfile - specify PID file\n");
+			printf("--version - show version\n");
 			exit(0);
 		}
 
@@ -123,6 +141,30 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 		{
 			nextValue = true;
 			next = Option.Port;
+		}
+
+		if (strcmp("--access-log", argv[i]) == 0)
+		{
+			nextValue = true;
+			next = Option.AccessLog;
+		}
+
+		if (strcmp("--pidfile", argv[i]) == 0)
+		{
+			nextValue = true;
+			next = Option.PidFile;
+		}
+
+		if (strcmp("--version", argv[i]) == 0)
+		{
+			import atlant: PROGRAM_NAME, VERSION;
+			printf("%s %s\n", PROGRAM_NAME.ptr, VERSION.ptr);
+			exit(0);
+		}
+
+		if (nextValue == false)
+		{
+			fprintf(stderr, "Unrecognized option: %s\n", argv[i]);
 		}
 	}
 
