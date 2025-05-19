@@ -60,6 +60,23 @@ void normalize(bool anyaddr, int family, sockaddr_in6* addr, bool translated)
     }
 }
 
+void normalize4to6(sockaddr_in6* addr)
+{
+    addr.sin6_family = AF_INET6;
+    addr.sin6_addr.s6_addr[0x0a] = 0xff;
+    addr.sin6_addr.s6_addr[0x0b] = 0xff;
+
+    addr.sin6_addr.s6_addr[0x0c] = addr.sin6_addr.s6_addr[0x00];
+    addr.sin6_addr.s6_addr[0x0d] = addr.sin6_addr.s6_addr[0x01];
+    addr.sin6_addr.s6_addr[0x0e] = addr.sin6_addr.s6_addr[0x02];
+    addr.sin6_addr.s6_addr[0x0f] = addr.sin6_addr.s6_addr[0x03];
+
+    for (int i = 0x00; i < 0x0a; i++)
+    {
+        addr.sin6_addr.s6_addr[i] = 0x0;
+    }
+}
+
 struct ServerInstance
 {
     private int sockfd = -1;
@@ -154,19 +171,7 @@ struct ServerInstance
                 family = AF_INET; // actual family is IPv4
                 translated = true;
 
-                servaddr.sin6_family = AF_INET6;
-                servaddr.sin6_addr.s6_addr[0x0a] = 0xff;
-                servaddr.sin6_addr.s6_addr[0x0b] = 0xff;
-
-                servaddr.sin6_addr.s6_addr[0x0c] = servaddr.sin6_addr.s6_addr[0x00];
-                servaddr.sin6_addr.s6_addr[0x0d] = servaddr.sin6_addr.s6_addr[0x01];
-                servaddr.sin6_addr.s6_addr[0x0e] = servaddr.sin6_addr.s6_addr[0x02];
-                servaddr.sin6_addr.s6_addr[0x0f] = servaddr.sin6_addr.s6_addr[0x03];
-
-                for (int i = 0x00; i < 0x0a; i++)
-                {
-                    servaddr.sin6_addr.s6_addr[i] = 0x0;
-                }
+                normalize4to6(&servaddr);
                 success = true;
             }
         }
@@ -196,6 +201,17 @@ struct ServerInstance
                     {
                         success = true;
                         silent = true;
+
+                        // static if (V == 6)
+                        // {
+                        //     if (addrinfo.ai_family == AF_INET)
+                        //     {
+                        //         family = AF_INET; // actual family is IPv4
+                        //         translated = true;
+                        //
+                        //         normalize4to6(&servaddr);
+                        //     }
+                        // }
                         break;
                     }
                     addrinfo = addrinfo.ai_next;
