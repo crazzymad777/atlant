@@ -18,13 +18,13 @@ extern (C) void termination_handler(int signum) nothrow @nogc
 }
 
 import core.sys.posix.netinet.in_;
-void normalize(bool anyaddr, int family, sockaddr_in6* addr)
+void normalize(bool anyaddr, int family, sockaddr_in6* addr, bool translated)
 {
     // import core.sys.posix.netinet.in_;
     import core.sys.posix.sys.socket;
-    if (anyaddr)
+    if (anyaddr || translated)
     {
-        if (family == AF_INET6)
+        if (family == AF_INET6 || translated)
         {
             if (addr.sin6_addr.s6_addr[0x0a] == 0xff &&
                 addr.sin6_addr.s6_addr[0x0b] == 0xff)
@@ -65,6 +65,7 @@ struct ServerInstance
     char* addr;
     int port;
     bool anyaddr;
+    bool translated;
 
     int tryFamily(int V = 6)()
     {
@@ -149,6 +150,7 @@ struct ServerInstance
             if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
             {
                 family = AF_INET; // actual family is IPv4
+                translated = true;
 
                 servaddr.sin6_family = AF_INET6;
                 servaddr.sin6_addr.s6_addr[0x0a] = 0xff;
@@ -238,7 +240,9 @@ struct ServerInstance
             {
                 import atlant.http.session;
                 Session session = Session(conn);
-                normalize(anyaddr, family, &clientaddr);
+
+                // What if server listen IPv4 mapped to IPv6 address?
+                normalize(anyaddr, family, &clientaddr, translated);
                 pid = session.spawn(family, clientaddr);
                 if (pid == 0)
                 {
