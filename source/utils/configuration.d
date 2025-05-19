@@ -13,7 +13,8 @@ struct Configuration
 	bool defaultIndex;
 	// bool enableDirectoryList;
 	// bool lazyLoad;
-	// bool defaultBindAddresses;
+	List!(char*) listOfAddresses;
+	bool defaultBindAddresses;
 	int port;
 
 	~this()
@@ -30,6 +31,7 @@ void* defaultConfiguration(Configuration* conf)
 	conf.listOfIndices.add(indexHtml);
 	conf.listOfIndices.add(indexHtm);
 	conf.port = 8080;
+	conf.defaultBindAddresses = true;
 	// conf.enableDirectoryList = true;
 	// conf.lazyLoad = false;
 	String.cString(&conf.directory, getcwd(null, 0));
@@ -43,7 +45,7 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 		None,
 		WorkingDirectory,
 		// Option,
-		// HttpBindAddress,
+		HttpBindAddress,
 		Port,
 		AddIndex
 	};
@@ -76,6 +78,14 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 				}
 				conf.listOfIndices.add(argv[i]);
 			}
+			else if (next == Option.HttpBindAddress)
+			{
+				if (conf.defaultBindAddresses)
+				{
+					conf.defaultBindAddresses = false;
+				}
+				conf.listOfAddresses.add(argv[i]);
+			}
 			next = Option.None;
 			nextValue = false;
 			continue;
@@ -84,10 +94,17 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 		if (strcmp("--help", argv[i]) == 0 || strcmp("-h", argv[i]) == 0)
 		{
 			printf("Use: %s [OPTIONS]\n", argv[0]);
+			printf("-a, --add-address - add bind address\n");
 			printf("-p, --port - specify HTTP PORT\n");
 			printf("-w, --working-directory - set application root directory\n");
 			printf("-x, --add-index - define files which will be used as an index\n");
 			exit(0);
+		}
+
+		if (strcmp("--add-address", argv[i]) == 0 || strcmp("-a", argv[i]) == 0)
+		{
+				nextValue = true;
+				next = Option.HttpBindAddress;
 		}
 
 		if (strcmp("--add-index", argv[i]) == 0 || strcmp("-x", argv[i]) == 0)

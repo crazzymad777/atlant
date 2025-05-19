@@ -22,7 +22,7 @@ extern(C) void main(int argc, char** argv)
 
         import atlant.http.server;
         Server server;
-        server.listen(conf.port);
+        server.listen(&conf);
         return;
     }
 }
