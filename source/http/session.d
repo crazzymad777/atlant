@@ -3,7 +3,6 @@ module atlant.http.session;
 public import atlant.http.parser: Request;
 import atlant.utils.array;
 import atlant.http.parser;
-import atlant.utils.data;
 
 enum HttpMethod
 {
@@ -28,12 +27,14 @@ struct Response
 
     enum ResultType
     {
+        array,
         text,
         gem
     };
 
     union
     {
+        Array!char array;
         char[256] text;
         Gem* gem;
     }
@@ -111,6 +112,13 @@ struct Session
                         mime = cast(char*) "text/plain; charset=utf-8";
                         length = strlen(data_to_response);
                     }
+                    else if (res.type == Response.ResultType.array)
+                    {
+                        import core.stdc.string;
+                        data_to_response = res.array.data();
+                        mime = cast(char*) "text/plain; charset=utf-8";
+                        length = res.array.size() - 1;
+                    }
 
                     char[256] buffer;
                     int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: atlant/0.0.1\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], mime, length);
@@ -124,6 +132,10 @@ struct Session
                     closeConnection &= req.closeConnection;
                     parser.requests.removeFront();
                     // res.gem.clean();
+                    if (res.type == Response.ResultType.array)
+                    {
+                        res.array.drop();
+                    }
                     req.s1.drop();
                 }
 

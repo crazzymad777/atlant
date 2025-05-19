@@ -9,7 +9,7 @@ HashTable ht;
 
 void handleRequest(Request req, Response* res)
 {
-    import atlant.utils.data;
+    import atlant.utils.array;
     import core.stdc.stdio;
 
     String s2;
@@ -23,8 +23,11 @@ void handleRequest(Request req, Response* res)
         return;
 	}
 
-	snprintf(cast(char*) res.text, 256, "Requested Resource /%s Not Found", s2.data);
-	res.type = Response.ResultType.text;
+    string str = "Requested Resource /%s Not Found";
+	size_t n = str.length - 2 + s2.length + 1;
+	res.array = Array!(char)(n);
+	res.type = Response.ResultType.array;
+	snprintf(res.array.data(), n, str.ptr, s2.data);
 	res.status = 404;
 	s2.drop();
 	return;

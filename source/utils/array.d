@@ -26,6 +26,16 @@ struct Array(T)
         payload[index] = value;
     }
 
+    T* data()
+    {
+        return payload;
+    }
+
+    size_t size()
+    {
+        return length;
+    }
+
     private size_t length;
     private T* payload;
 
