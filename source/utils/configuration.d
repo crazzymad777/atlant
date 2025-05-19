@@ -103,8 +103,8 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 
 		if (strcmp("--add-address", argv[i]) == 0 || strcmp("-a", argv[i]) == 0)
 		{
-				nextValue = true;
-				next = Option.HttpBindAddress;
+			nextValue = true;
+			next = Option.HttpBindAddress;
 		}
 
 		if (strcmp("--add-index", argv[i]) == 0 || strcmp("-x", argv[i]) == 0)

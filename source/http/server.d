@@ -20,8 +20,8 @@ extern (C) void termination_handler(int signum) nothrow @nogc
 struct ServerInstance
 {
     private int sockfd = -1;
-    Configuration* conf;
-    // int port;
+    char* addr;
+    int port;
 
     int try6()
     {
@@ -45,65 +45,52 @@ struct ServerInstance
         setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
         setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
 
-        if (conf.defaultBindAddresses)
-        {
-            servaddr.sin6_family = AF_INET6;
-            servaddr.sin6_addr = in6addr_any;
-            servaddr.sin6_port = htons(cast(ushort) conf.port);
+        bool success = false;
 
-            if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
+        servaddr.sin6_family = AF_INET6;
+        servaddr.sin6_port = htons(cast(ushort) port);
+
+        if (addr is null)
+        {
+            servaddr.sin6_addr = in6addr_any;
+            success = true;
+        }
+
+        if (!success)
+        {
+            if (inet_pton(AF_INET6, addr, &servaddr.sin6_addr) == 1)
             {
-                printf("bind (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
-                return -2;
+                success = true;
             }
         }
-        else
+
+        if (!success)
         {
-            auto addrNode = conf.listOfAddresses.front();
-            while (addrNode !is null)
+            if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
             {
                 servaddr.sin6_family = AF_INET6;
-                servaddr.sin6_port = htons(cast(ushort) conf.port);
+                servaddr.sin6_addr.s6_addr[0x0a] = 0xff;
+                servaddr.sin6_addr.s6_addr[0x0b] = 0xff;
 
-                bool success = false;
-                if (inet_pton(AF_INET6, addrNode.value, &servaddr.sin6_addr) == 1)
+                servaddr.sin6_addr.s6_addr[0x0c] = servaddr.sin6_addr.s6_addr[0x00];
+                servaddr.sin6_addr.s6_addr[0x0d] = servaddr.sin6_addr.s6_addr[0x01];
+                servaddr.sin6_addr.s6_addr[0x0e] = servaddr.sin6_addr.s6_addr[0x02];
+                servaddr.sin6_addr.s6_addr[0x0f] = servaddr.sin6_addr.s6_addr[0x03];
+
+                for (int i = 0x00; i < 0x0a; i++)
                 {
-                    servaddr.sin6_port = htons(cast(ushort) conf.port);
-                    success = true;
+                    servaddr.sin6_addr.s6_addr[i] = 0x0;
                 }
+                success = true;
+            }
+        }
 
-                if (!success)
-                {
-                    if (inet_pton(AF_INET, addrNode.value, &servaddr.sin6_addr) == 1)
-                    {
-                        servaddr.sin6_family = AF_INET6;
-                        servaddr.sin6_addr.s6_addr[0x0a] = 0xff;
-                        servaddr.sin6_addr.s6_addr[0x0b] = 0xff;
-
-                        servaddr.sin6_addr.s6_addr[0x0c] = servaddr.sin6_addr.s6_addr[0x00];
-                        servaddr.sin6_addr.s6_addr[0x0d] = servaddr.sin6_addr.s6_addr[0x01];
-                        servaddr.sin6_addr.s6_addr[0x0e] = servaddr.sin6_addr.s6_addr[0x02];
-                        servaddr.sin6_addr.s6_addr[0x0f] = servaddr.sin6_addr.s6_addr[0x03];
-
-                        for (int i = 0x00; i < 0x0a; i++)
-                        {
-                            servaddr.sin6_addr.s6_addr[i] = 0x0;
-                        }
-                        servaddr.sin6_port = htons(cast(ushort) conf.port);
-                        success = true;
-                    }
-                }
-
-                if (success)
-                {
-                    if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-                    {
-                        printf("bind (AF_INET6) %s failed: %s\n", addrNode.value, strerror(errno));
-                        return -2;
-                    }
-                    break;
-                }
-                addrNode = addrNode.next;
+        if (success)
+        {
+            if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
+            {
+                printf("bind (AF_INET6) %s failed: %s\n", addr, strerror(errno));
+                return -2;
             }
         }
 
@@ -114,7 +101,6 @@ struct ServerInstance
         }
 
         this.sockfd = sockfd;
-
         return 0;
     }
 
@@ -140,35 +126,28 @@ struct ServerInstance
         setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
         setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
 
-        if (conf.defaultBindAddresses)
-        {
-            servaddr.sin_family = AF_INET;
-            servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-            servaddr.sin_port = htons(cast(ushort) conf.port);
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(cast(ushort) port);
 
-            if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-            {
-                printf("bind failed: %s, %d\n", strerror(errno), errno);
-                return -2;
-            }
+        bool success = false;
+
+        if (addr is null)
+        {
+            servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            success = true;
         }
         else
         {
-            auto addrNode = conf.listOfAddresses.front();
-            while (addrNode !is null)
+            if (inet_pton(AF_INET, addr, &servaddr.sin_addr) == 1)
             {
-                servaddr.sin_family = AF_INET;
-                if (inet_pton(AF_INET, addrNode.value, &servaddr.sin_addr) == 1)
-                {
-                    if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-                    {
-                        printf("bind %s failed: %s\n", addrNode.value, strerror(errno));
-                        return -2;
-                    }
-                    break;
-                }
-                addrNode = addrNode.next;
+                success = true;
             }
+        }
+
+        if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
+        {
+            printf("bind %s failed: %s\n", addr, strerror(errno));
+            return -2;
         }
 
         if ((listen(sockfd, 0)) != 0)
@@ -255,9 +234,31 @@ struct Server
 
     void listen(Configuration* conf)
     {
+        import core.sys.posix.sys.wait;
         import core.sys.posix.unistd;
-        // instance.port = conf.port;
-        instance.conf = conf;
-        run_server_instance(cast(void*) &instance);
+        instance.port = conf.port;
+
+        if (conf.defaultBindAddresses)
+        {
+            instance.addr = null;
+            run_server_instance(cast(void*) &instance);
+        }
+        else
+        {
+            auto addrNode = conf.listOfAddresses.front();
+            while (addrNode !is null)
+            {
+                int pid = fork();
+                if (pid == 0)
+                {
+                    instance.addr = addrNode.value;
+                    run_server_instance(cast(void*) &instance);
+                    break;
+                }
+                addrNode = addrNode.next;
+            }
+
+            while (wait(null) > 0) {}
+        }
     }
 }
