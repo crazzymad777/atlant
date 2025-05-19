@@ -37,7 +37,7 @@ struct ServerInstance
         int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
-            printf("socket (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
+            perror("socket");
             return -1;
         }
 
@@ -89,14 +89,14 @@ struct ServerInstance
         {
             if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
             {
-                printf("bind (AF_INET6) %s failed: %s\n", addr, strerror(errno));
+                perror("bind");
                 return -2;
             }
         }
 
         if ((listen(sockfd, 0)) != 0)
         {
-            printf("listen (AF_INET6) failed: %s, %d\n", strerror(errno), errno);
+            perror("listen");
             return -2;
         }
 
@@ -118,7 +118,7 @@ struct ServerInstance
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
-            printf("socket failed: %s, %d\n", strerror(errno), errno);
+            perror("socket");
             return -1;
         }
 
@@ -146,13 +146,13 @@ struct ServerInstance
 
         if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
         {
-            printf("bind %s failed: %s\n", addr, strerror(errno));
+            perror("bind");
             return -2;
         }
 
         if ((listen(sockfd, 0)) != 0)
         {
-            printf("listen failed: %s, %d\n", strerror(errno), errno);
+            perror("listen");
             return -2;
         }
 
@@ -202,8 +202,7 @@ struct ServerInstance
                     continue;
                 }
 
-                printf("accept break: %s, %d\n", strerror(errno), errno);
-
+                perror("accept");
                 break;
             }
             else
@@ -220,11 +219,8 @@ struct ServerInstance
 
         if (pid != 0)
         {
-            // printf("close main %d\n", sockfd);
             close(sockfd);
         }
-
-        // join here session threads...
     }
 }
 
