@@ -5,6 +5,8 @@ import atlant.utils.configuration;
 extern(C) void* run_server_instance(void* data)
 {
     ServerInstance* instance = cast(ServerInstance*) data;
+    // import core.stdc.stdio;
+    // printf("%s : %d\n", instance.addr, instance.port);
     instance.serve();
     return null;
 }
@@ -268,24 +270,48 @@ struct Server
         import core.sys.posix.unistd;
         instance.port = conf.port;
 
+        auto addrNodePort = conf.listOfPorts.front();
         if (conf.defaultBindAddresses)
         {
+
+            if (addrNodePort !is null)
+            {
+                instance.port = addrNodePort.value;
+            }
+
             instance.addr = null;
             run_server_instance(cast(void*) &instance);
         }
         else
         {
             auto addrNode = conf.listOfAddresses.front();
+            int currentPort = conf.port;
+
+            if (addrNodePort !is null)
+            {
+                currentPort = addrNodePort.value;
+            }
+
             while (addrNode !is null)
             {
                 int pid = fork();
                 if (pid == 0)
                 {
                     instance.addr = addrNode.value;
+                    instance.port = currentPort;
                     run_server_instance(cast(void*) &instance);
                     break;
                 }
                 addrNode = addrNode.next;
+
+                if (addrNodePort !is null)
+                {
+                    if (addrNodePort.next !is null)
+                    {
+                        addrNodePort = addrNodePort.next;
+                        currentPort = addrNodePort.value;
+                    }
+                }
             }
 
             while (wait(null) > 0) {}

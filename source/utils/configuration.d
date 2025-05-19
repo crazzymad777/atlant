@@ -20,6 +20,9 @@ struct Configuration
 	char* accesslog;
 	char* pidfile;
 
+	List!(ushort) listOfPorts;
+	int argPort = -1;
+
 	~this()
 	{
 		import core.stdc.stdlib;
@@ -74,7 +77,7 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			else if (next == Option.Port)
 			{
 				import core.stdc.stdlib;
-				conf.port = atoi(argv[i]);
+				conf.argPort = atoi(argv[i]);
 			}
 			else if (next == Option.AddIndex)
 			{
@@ -92,6 +95,12 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 					conf.defaultBindAddresses = false;
 				}
 				conf.listOfAddresses.add(argv[i]);
+
+				if (conf.argPort != -1)
+				{
+					conf.listOfPorts.add(cast(ushort) conf.argPort);
+					conf.argPort = -1;
+				}
 			}
 			else if (next == Option.AccessLog)
 			{
@@ -167,6 +176,24 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			fprintf(stderr, "Unrecognized option: %s\n", argv[i]);
 		}
 	}
+
+	if (conf.argPort != -1)
+	{
+		// conf.port = conf.argPort;
+		conf.listOfPorts.add(cast(ushort) conf.argPort);
+		// conf.argPort = -1;
+	}
+
+	// if (conf.argPort != -1)
+	// {
+	// 	conf.port = conf.argPort;
+	// 	conf.listOfPorts.add(cast(ushort) conf.argPort);
+	// 	// conf.argPort = -1;
+	// }
+	// else
+	// {
+	// 	conf.argPort = conf.port;
+	// }
 
 	if (nextValue)
 	{
