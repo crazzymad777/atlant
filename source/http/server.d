@@ -251,7 +251,9 @@ struct ServerInstance
 
                 // What if server listen IPv4 mapped to IPv6 address?
                 normalize(anyaddr, family, &clientaddr, translated);
-                pid = session.spawn(family, clientaddr);
+                session.load(family, clientaddr);
+
+                pid = session.spawn();
                 if (pid == 0)
                 {
                     break;

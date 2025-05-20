@@ -44,11 +44,11 @@ import atlant.http.server: doWork;
 
 struct Session
 {
-    import core.sys.posix.netinet.in_;
-    char[INET6_ADDRSTRLEN] addrbuf;
-    // int addrport = 0;
     Parser parser;
     int sockfd;
+
+    import atlant.http.session.log;
+    Log log;
 
     this(int sockfd)
     {
@@ -57,10 +57,7 @@ struct Session
 
     void serve()
     {
-        import core.stdc.time;
-        char[256] timestamp;
-        time_t now;
-        tm* tmptr;
+        LogTime logtime;
 
         import core.stdc.stdlib;
         import core.stdc.string;
@@ -86,8 +83,7 @@ struct Session
 
                 for (int i = 0; i < count; i++)
                 {
-                    now = time(null);
-                    tmptr = localtime(&now);
+                    logtime.notch();
                     Response res;
                     Request req = parser.requests.front().value;
                     handleRequest(req, &res);
@@ -136,29 +132,12 @@ struct Session
                     int bytes = snprintf(&buffer[0], 256, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %lu\r\n\r\n", &x[0], SERVER_STRING.ptr, mime, length);
 
                     send(sockfd, &buffer[0], bytes, 0);
-                    char* method = cast(char*) "-".ptr;
                     if (req.method != HttpMethod.HEAD)
                     {
                         send(sockfd, data_to_response, length, 0);
-                        if (req.method == HttpMethod.GET)
-                        {
-                            method = cast(char*) "GET".ptr;
-                        }
-                    }
-                    else
-                    {
-                        method = cast(char*) "HEAD".ptr;
                     }
 
-                    import atlant: accesslog;
-                    if (accesslog !is null)
-                    {
-                        timestamp[0] = '-';
-                        timestamp[1] = '\0';
-                        strftime(&timestamp[0], timestamp.sizeof, "%Y-%m-%dT%H:%M:%S%z", tmptr);
-                        fprintf(accesslog, "%s %s %s /%s %d %lu\n", &addrbuf[0], &timestamp[0], method, req.s1.data, res.status, length);
-                        fflush(accesslog);
-                    }
+                    log.write(&logtime, req.method, req.s1.data, res.status, length);
 
                     closeConnection &= req.closeConnection;
                     parser.requests.removeFront();
@@ -194,19 +173,20 @@ struct Session
         close(sockfd);
     }
 
-    int spawn(int family, sockaddr_in6 clientaddr)
+    import core.sys.posix.netinet.in_; // for sockaddr_in6
+    void load(int family, sockaddr_in6 clientaddr)
     {
         import core.stdc.stdio;
-        if (inet_ntop(family, cast(sockaddr*) &clientaddr, &addrbuf[0], addrbuf.sizeof) is null)
+        if (inet_ntop(family, cast(sockaddr*) &clientaddr, &log.addrbuf[0], log.addrbuf.sizeof) is null)
         {
-
             perror("inet_ntop");
-            addrbuf[0] = '-';
-            addrbuf[1] = '\0';
-            // addrport = clientaddr.sin6_port;
+            log.addrbuf[0] = '-';
+            log.addrbuf[1] = '\0';
         }
-        // printf("%s\n", &addrbuf[0]);
+    }
 
+    int spawn()
+    {
         import core.sys.posix.unistd;
 
         int pid = fork();
