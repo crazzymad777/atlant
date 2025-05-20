@@ -40,73 +40,15 @@ struct ServerInstance
         import core.sys.posix.netinet.in_: sockaddr_in6, inet_pton, sockaddr, sockaddr_in, in6addr_any, htons, htonl, INADDR_ANY;
         import core.stdc.stdio: printf, perror;
 
-        static if (V == 6)
-        {
         sockaddr_in6 servaddr;
-        }
-        else
-        {
-        sockaddr_in servaddr;
-        }
-
+        import atlant.net.address;
         bool success = false;
-
-        static if (V == 6)
+        bool flag = false;
+        success = parse(addr, cast(ushort) port, &servaddr, &flag);
+        if (flag == true)
         {
-        servaddr.sin6_family = cast(ushort) family;
-        servaddr.sin6_port = htons(cast(ushort) port);
-        }
-        else
-        {
-        servaddr.sin_family = cast(ushort) family;
-        servaddr.sin_port = htons(cast(ushort) port);
-        }
-
-        if (addr is null)
-        {
-            static if (V == 6)
-            {
-                servaddr.sin6_addr = in6addr_any;
-            }
-            else
-            {
-                servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-            }
-            success = true;
-            anyaddr = true;
-        }
-
-        if (!success)
-        {
-            static if (V == 6)
-            {
-                if (inet_pton(family, addr, &servaddr.sin6_addr) == 1)
-                {
-                    success = true;
-                }
-            }
-            else
-            {
-                if (inet_pton(family, addr, &servaddr.sin_addr) == 1)
-                {
-                    success = true;
-                }
-            }
-        }
-
-        static if (V == 6)
-        {
-        if (!success)
-        {
-            if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
-            {
-                family = AF_INET; // actual family is IPv4
-                translated = true;
-
-                normalize4to6(&servaddr);
-                success = true;
-            }
-        }
+            family = AF_INET; // actual family is IPv4
+            translated = true;
         }
 
         if (!success)
@@ -187,14 +129,14 @@ struct ServerInstance
         import core.stdc.errno;
 
         int status = tryFamily!6();
-        if (status == -1)
-        {
-            status = tryFamily!4();
-            if (status < 0)
-            {
-                return;
-            }
-        }
+        // if (status == -1)
+        // {
+        //     status = tryFamily!4();
+        //     if (status < 0)
+        //     {
+        //         return;
+        //     }
+        // }
 
         if (status != 0)
         {
