@@ -153,6 +153,7 @@ struct ServerInstance
                         }
                         break;
                     }
+                    printf("%d: fork %d\n", getpid(), pid);
                     addrinfo = addrinfo.ai_next;
                     // i++;
                 }
@@ -160,7 +161,9 @@ struct ServerInstance
                 if (pid != 0)
                 {
                     import core.sys.posix.sys.wait;
+                    printf("%d: wait\n", getpid());
                     while (wait(null) > 0) {}
+                    printf("%d: continue\n", getpid());
                     return -2;
                 }
             }
@@ -231,6 +234,7 @@ struct ServerInstance
         sockaddr_in6 clientaddr;
         uint addrlen;
         int pid = -1;
+        printf("%d: accepting\n", getpid());
         while (doWork)
         {
             int conn = accept(sockfd, cast(sockaddr*) &clientaddr, &addrlen);
@@ -258,6 +262,7 @@ struct ServerInstance
                 {
                     break;
                 }
+                printf("%d: fork %d\n", getpid(), pid);
             }
         }
 
@@ -300,6 +305,7 @@ struct Server
                 currentPort = addrNodePort.value;
             }
 
+            import core.stdc.stdio;
             while (addrNode !is null)
             {
                 int pid = fork();
@@ -310,6 +316,7 @@ struct Server
                     run_server_instance(cast(void*) &instance);
                     break;
                 }
+                printf("%d: fork %d\n", getpid(), pid);
                 addrNode = addrNode.next;
 
                 if (addrNodePort !is null)
@@ -322,7 +329,9 @@ struct Server
                 }
             }
 
+            printf("%d: wait\n", getpid());
             while (wait(null) > 0) {}
+            printf("%d: continue\n", getpid());
         }
     }
 }
