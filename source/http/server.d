@@ -33,16 +33,12 @@ struct ServerInstance
 
     int tryFamily(int V = 6)()
     {
-        import core.sys.posix.sys.socket;
+        import core.sys.posix.sys.socket: AF_INET6, AF_INET;
         const af_const = family = V == 6 ? AF_INET6 : AF_INET;
         family = af_const;
 
-        import core.sys.posix.netinet.in_;
-        import core.sys.posix.unistd;
-
-        import core.stdc.string;
-        import core.stdc.stdio;
-        import core.stdc.errno;
+        import core.sys.posix.netinet.in_: sockaddr_in6, inet_pton, sockaddr, sockaddr_in, in6addr_any, htons, htonl, INADDR_ANY;
+        import core.stdc.stdio: printf, perror;
 
         static if (V == 6)
         {
@@ -113,10 +109,9 @@ struct ServerInstance
         }
         }
 
-        bool silent = false;
-
         if (!success)
         {
+            import core.sys.posix.unistd: getpid, fork;
             import core.sys.posix.netdb;
 
             addrinfo* addrinfo;
@@ -133,12 +128,12 @@ struct ServerInstance
                     {
                         parent = false;
                         success = true;
-                        // silent = true;
 
                         static if (V == 6)
                         {
                             if (addrinfo.ai_family == AF_INET)
                             {
+                                import core.stdc.string: memcpy;
                                 family = AF_INET; // actual family is IPv4
                                 translated = true;
                                 memcpy(&servaddr, &addrinfo.ai_addr, addrinfo.ai_addrlen);
@@ -170,29 +165,13 @@ struct ServerInstance
 
         if (success)
         {
-            int sockfd = socket(af_const, SOCK_STREAM, 0);
+            import atlant.net.socket: create;
+
+            int sockfd = create(af_const, cast(sockaddr*) &servaddr, servaddr.sizeof);
             if (sockfd == -1)
             {
-                perror("socket");
                 return -1;
             }
-
-            int v = 1;
-            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
-            setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
-
-            if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-            {
-                if (!silent) perror("bind");
-                return -2;
-            }
-
-            if ((listen(sockfd, 0)) != 0)
-            {
-                if (!silent) perror("listen");
-                return -2;
-            }
-
             this.sockfd = sockfd;
             return 0;
         }
