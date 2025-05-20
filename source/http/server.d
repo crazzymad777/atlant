@@ -133,12 +133,14 @@ struct ServerInstance
 
             if (result == 0)
             {
+                bool parent = true;
                 int pid;
                 while (addrinfo !is null)
                 {
                     pid = fork();
                     if (pid == 0)
                     {
+                        parent = false;
                         success = true;
                         silent = true;
 
@@ -160,7 +162,7 @@ struct ServerInstance
                     // i++;
                 }
 
-                if (pid != 0)
+                if (parent)
                 {
                     import core.sys.posix.sys.wait;
                     debug if (logpid) printf("%d: wait\n", getpid());
@@ -311,12 +313,14 @@ struct Server
                 currentPort = addrNodePort.value;
             }
 
+            bool parent = true;
             import core.stdc.stdio;
             while (addrNode !is null)
             {
                 int pid = fork();
                 if (pid == 0)
                 {
+                    parent = false;
                     instance.addr = addrNode.value;
                     instance.port = currentPort;
                     run_server_instance(cast(void*) &instance);
@@ -335,9 +339,12 @@ struct Server
                 }
             }
 
-            debug if (conf.logpid) printf("%d: wait\n", getpid());
-            while (wait(null) > 0) {}
-            debug if (conf.logpid) printf("%d: continue\n", getpid());
+            if (parent)
+            {
+                debug if (conf.logpid) printf("%d: wait\n", getpid());
+                while (wait(null) > 0) {}
+                debug if (conf.logpid) printf("%d: continue\n", getpid());
+            }
         }
     }
 }
