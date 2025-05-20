@@ -14,13 +14,13 @@ struct Array(T)
         }
     }
 
-    T at(long index)
+    T at(size_t index)
     {
         assert(index >= 0 && index < length);
         return payload[index];
     }
 
-    void put(long index, T value)
+    void put(size_t index, T value)
     {
         assert(index >= 0 && index < length);
         payload[index] = value;

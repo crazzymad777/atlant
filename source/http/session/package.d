@@ -72,7 +72,7 @@ struct Session
             chunk.length = chunk.buffer.sizeof;
             import core.sys.posix.sys.socket;
 
-            long status = recv(sockfd, &chunk.buffer, chunk.buffer.sizeof, 0);
+            auto status = recv(sockfd, &chunk.buffer, chunk.buffer.sizeof, 0);
             if (status > 0)
             {
                 // printf("Received %ld\n", status);

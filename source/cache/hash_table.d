@@ -8,7 +8,7 @@ import atlant.cache.gem;
 
 struct HashTable
 {
-    private ulong count;
+    private size_t count;
     private int* capacity;
     this(TreeNode* root)
     {

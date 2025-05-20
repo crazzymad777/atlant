@@ -85,9 +85,9 @@ struct String
         cannonic
     };
     bool sealed = false;
-    long allocated_length;
+    size_t allocated_length;
     char* data; // one indirection
-    long length = -1;
+    size_t length = -1;
     Type type = Type.cannonic;
     int index;
     int hash;
@@ -96,7 +96,7 @@ struct String
 
     void drop()
     {
-        if (allocated_length > 0 && !detached)
+        if (allocated_length != -1 && !detached)
         {
             import core.stdc.stdlib;
             free(data);
@@ -120,7 +120,7 @@ struct String
         s.length = strlen(ptr);
     }
 
-    static void cStringAlloc(String* s, long stringLength)
+    static void cStringAlloc(String* s, size_t stringLength)
     {
         import core.stdc.stdlib;
         //assert(ptr !is null);
@@ -155,7 +155,7 @@ struct String
             {
                 // reallocate...
                 import core.stdc.stdlib;
-                long space = allocated_length + alloc_step;
+                size_t space = allocated_length + alloc_step;
                 data = cast(char*) realloc(data, space);
                 assert(data !is null);
                 allocated_length = space;
