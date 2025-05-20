@@ -1,4 +1,4 @@
-module atlant.http.chunk;
+module atlant.http.session.chunk;
 
 import core.sys.posix.sys.types;
 

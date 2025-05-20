@@ -1,7 +1,7 @@
-module atlant.http.parser;
+module atlant.http.session.parser;
 
 import atlant.http.session;
-import atlant.http.chunk;
+import atlant.http.session.chunk;
 import atlant.utils.string;
 import atlant.utils.list;
 

@@ -1,8 +1,8 @@
 module atlant.http.session;
 
-public import atlant.http.parser: Request;
+public import atlant.http.session.parser: Request;
 import atlant.utils.array;
-import atlant.http.parser;
+import atlant.http.session.parser;
 
 enum HttpMethod
 {
@@ -66,7 +66,7 @@ struct Session
         import core.stdc.string;
         import core.stdc.stdio;
         import core.sys.posix.unistd;
-        import atlant.http.chunk;
+        import atlant.http.session.chunk;
         import core.stdc.errno;
 
         Chunk chunk;
