@@ -96,7 +96,7 @@ struct String
 
     void drop()
     {
-        if (allocated_length != -1 && !detached)
+        if (allocated_length != 0 && !detached)
         {
             import core.stdc.stdlib;
             free(data);
