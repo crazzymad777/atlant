@@ -1,6 +1,6 @@
 name "atlant"
-version "0.0.1-alpha"
-description "Random Access Static Web Server"
+version "0.0.1"
+description "Server provides random access to static content"
 authors "Yuriy Moskoff"
 copyright "Copyright © 2025, Yuriy Moskoff"
 license "BSD-3-Clause-Clear"
