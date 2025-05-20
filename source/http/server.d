@@ -34,7 +34,9 @@ struct ServerInstance
     int tryFamily(int V = 6)()
     {
         import core.sys.posix.sys.socket;
-        family = V == 6 ? AF_INET6 : AF_INET;
+        const af_const = family = V == 6 ? AF_INET6 : AF_INET;
+        family = af_const;
+
         import core.sys.posix.netinet.in_;
         import core.sys.posix.unistd;
 
@@ -50,17 +52,6 @@ struct ServerInstance
         {
         sockaddr_in servaddr;
         }
-
-        int sockfd = socket(family, SOCK_STREAM, 0);
-        if (sockfd == -1)
-        {
-            perror("socket");
-            return -1;
-        }
-
-        int v = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
 
         bool success = false;
 
@@ -142,7 +133,7 @@ struct ServerInstance
                     {
                         parent = false;
                         success = true;
-                        silent = true;
+                        // silent = true;
 
                         static if (V == 6)
                         {
@@ -179,6 +170,17 @@ struct ServerInstance
 
         if (success)
         {
+            int sockfd = socket(af_const, SOCK_STREAM, 0);
+            if (sockfd == -1)
+            {
+                perror("socket");
+                return -1;
+            }
+
+            int v = 1;
+            setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
+            setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
+
             if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
             {
                 if (!silent) perror("bind");
