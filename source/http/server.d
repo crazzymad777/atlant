@@ -19,63 +19,7 @@ extern (C) void termination_handler(int signum) nothrow @nogc
     doWork = false;
 }
 
-import core.sys.posix.netinet.in_;
-void normalize(bool anyaddr, int family, sockaddr_in6* addr, bool translated)
-{
-    // import core.sys.posix.netinet.in_;
-    import core.sys.posix.sys.socket;
-    if (anyaddr || translated)
-    {
-        if (family == AF_INET6 || translated)
-        {
-            if (addr.sin6_addr.s6_addr[0x0a] == 0xff &&
-                addr.sin6_addr.s6_addr[0x0b] == 0xff)
-            {
-                int hits = 0;
-                for (; hits  < 0xa; hits ++)
-                {
-                    if (addr.sin6_addr.s6_addr[hits ] != 0)
-                    {
-                        break;
-                    }
-                }
-
-                if (hits == 0xa)
-                {
-                    // That's IPv4 address mapped to IPv6
-                    // Translation
-                    addr.sin6_family = AF_INET;
-                    addr.sin6_addr.s6_addr[0x00] = addr.sin6_addr.s6_addr[0x0c];
-                    addr.sin6_addr.s6_addr[0x01] = addr.sin6_addr.s6_addr[0x0d];
-                    addr.sin6_addr.s6_addr[0x02] = addr.sin6_addr.s6_addr[0x0e];
-                    addr.sin6_addr.s6_addr[0x03] = addr.sin6_addr.s6_addr[0x0f];
-
-                    for (int i = 0x0a; i <= 0x0f; i++)
-                    {
-                        addr.sin6_addr.s6_addr[i] = 0x0;
-                    }
-                }
-            }
-        }
-    }
-}
-
-void normalize4to6(sockaddr_in6* addr)
-{
-    addr.sin6_family = AF_INET6;
-    addr.sin6_addr.s6_addr[0x0a] = 0xff;
-    addr.sin6_addr.s6_addr[0x0b] = 0xff;
-
-    addr.sin6_addr.s6_addr[0x0c] = addr.sin6_addr.s6_addr[0x00];
-    addr.sin6_addr.s6_addr[0x0d] = addr.sin6_addr.s6_addr[0x01];
-    addr.sin6_addr.s6_addr[0x0e] = addr.sin6_addr.s6_addr[0x02];
-    addr.sin6_addr.s6_addr[0x0f] = addr.sin6_addr.s6_addr[0x03];
-
-    for (int i = 0x00; i < 0x0a; i++)
-    {
-        addr.sin6_addr.s6_addr[i] = 0x0;
-    }
-}
+import atlant.net.ipv6: normalize, normalize4to6;
 
 struct ServerInstance
 {
@@ -189,29 +133,24 @@ struct ServerInstance
             if (result == 0)
             {
                 int pid;
-                // char[INET6_ADDRSTRLEN] addrbuf;
-                // int i = 0;
                 while (addrinfo !is null)
                 {
-                    // inet_ntop(AF_INET6, addrinfo.ai_addr, &addrbuf[0], addrbuf.sizeof);
-                    // printf("%d %s\n", i, &addrbuf[0]);
-
                     pid = fork();
                     if (pid == 0)
                     {
                         success = true;
                         silent = true;
 
-                        // static if (V == 6)
-                        // {
-                        //     if (addrinfo.ai_family == AF_INET)
-                        //     {
-                        //         family = AF_INET; // actual family is IPv4
-                        //         translated = true;
-                        //
-                        //         normalize4to6(&servaddr);
-                        //     }
-                        // }
+                        static if (V == 6)
+                        {
+                            if (addrinfo.ai_family == AF_INET)
+                            {
+                                family = AF_INET; // actual family is IPv4
+                                translated = true;
+                                memcpy(&servaddr, &addrinfo.ai_addr, addrinfo.ai_addrlen);
+                                normalize4to6(&servaddr);
+                            }
+                        }
                         break;
                     }
                     addrinfo = addrinfo.ai_next;
