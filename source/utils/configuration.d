@@ -23,6 +23,8 @@ struct Configuration
 	List!(ushort) listOfPorts;
 	int argPort = -1;
 
+	debug bool logpid;
+
 	~this()
 	{
 		import core.stdc.stdlib;
@@ -62,6 +64,7 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 
 	Option next = Option.None;
 	bool nextValue = false;
+	bool recognized = false;
 	import core.stdc.stdlib: exit;
 	import core.stdc.string;
 	import core.stdc.stdio;
@@ -114,6 +117,7 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			nextValue = false;
 			continue;
 		}
+		recognized = false;
 
 		if (strcmp("--help", argv[i]) == 0 || strcmp("-h", argv[i]) == 0)
 		{
@@ -125,6 +129,8 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			printf("--access-log - specify access log file\n");
 			printf("--pidfile - specify PID file\n");
 			printf("--version - show version\n");
+			debug printf("Debug options:\n");
+			debug printf("--logpid - show forks, waits, exits\n");
 			exit(0);
 		}
 
@@ -171,7 +177,13 @@ void parseArgs(Configuration* conf, int argc, char** argv)
 			exit(0);
 		}
 
-		if (nextValue == false)
+		debug if (strcmp("--logpid", argv[i]) == 0)
+		{
+			conf.logpid = true;
+			recognized = true;
+		}
+
+		if (nextValue == false && recognized == false)
 		{
 			fprintf(stderr, "Unrecognized option: %s\n", argv[i]);
 		}

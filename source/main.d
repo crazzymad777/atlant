@@ -14,8 +14,9 @@ extern(C) void main(int argc, char** argv)
     defaultConfiguration(&conf);
     parseArgs(&conf, argc, argv);
 
-    import core.sys.posix.unistd: getpid;
-    printf("%d: exec\n", getpid());
+    debug import core.sys.posix.unistd: getpid;
+    debug if (conf.logpid) printf("%d: exec\n", getpid());
+
     pidfile(conf.pidfile);
     openlog(conf.accesslog);
 
@@ -31,11 +32,11 @@ extern(C) void main(int argc, char** argv)
         server.listen(&conf);
         closelog();
 
-        printf("%d: exit\n", getpid());
+        debug if (conf.logpid) printf("%d: exit\n", getpid());
         return;
     }
     closelog();
 
-    printf("%d: exit\n", getpid());
+    debug if (conf.logpid) printf("%d: exit\n", getpid());
     return;
 }
