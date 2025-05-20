@@ -264,7 +264,7 @@ struct ServerInstance
                 {
                     break;
                 }
-                debug printf("%d: fork %d\n", getpid(), pid);
+                debug if (logpid) printf("%d: fork %d\n", getpid(), pid);
             }
         }
 
