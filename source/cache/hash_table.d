@@ -10,12 +10,11 @@ struct HashTable
 {
     private size_t mask = 1;
     private size_t size;
-    private size_t count;
     private int* capacity;
     this(TreeNode* root)
     {
         import core.stdc.stdlib;
-        count = root.childsNumber + 1; // +1 for root itself
+        size_t count = root.childsNumber + 1; // +1 for root itself
         size = 1;
         mask = 1;
         while (size < count)
