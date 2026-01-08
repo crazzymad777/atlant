@@ -43,12 +43,13 @@ struct ServerInstance
         sockaddr_in6 servaddr;
         import atlant.net.address;
         bool success = false;
-        bool flag = false;
-        success = parse(addr, cast(ushort) port, &servaddr, &flag);
-        if (flag == true)
+        success = parse(addr, cast(ushort) port, &servaddr);
+
+        if (servaddr.sin6_family == AF_INET)
         {
             family = AF_INET; // actual family is IPv4
             translated = true;
+            normalize4to6(&servaddr);
         }
 
         if (!success)
