@@ -7,7 +7,7 @@ import atlant.cache.gem;
 // Bucket contains gems with same perfect hash
 struct Bucket
 {
-	static Bucket* of(long capacity)
+	static Bucket* of(size_t capacity)
 	{
 		import core.stdc.stdlib;
 		Bucket* bucket = cast(Bucket*) malloc(Bucket.sizeof);
@@ -16,16 +16,16 @@ struct Bucket
 		return bucket;
 	}
 
-	public this(long capacity)
+	public this(size_t capacity)
 	{
 		gems = Array!(Gem*)(capacity);
 	}
-	private long length;
+	private size_t length;
 	private Array!(Gem*) gems;
 
 	public void put(Gem* newGem)
 	{
-		for (long i = 0; i < length; i++)
+		for (size_t i = 0; i < length; i++)
 		{
             Gem* gem = gems.at(i);
 			if (gem.hash == newGem.hash)
@@ -63,7 +63,7 @@ struct Bucket
 
 	public void show()
 	{
-		for (long i = 0; i < length; i++)
+		for (size_t i = 0; i < length; i++)
 		{
             gems.at(i).show();
 		}
@@ -71,7 +71,7 @@ struct Bucket
 
 	public void drop()
 	{
-		for (long i = 0; i < length; i++)
+		for (size_t i = 0; i < length; i++)
 		{
             gems.at(i).drop();
 		}

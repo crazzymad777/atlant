@@ -6,7 +6,7 @@ struct Log
     import atlant.http.session: HttpMethod;
     char[INET6_ADDRSTRLEN] addrbuf;
     // int addrport = 0;
-    void write(LogTime* logtime, HttpMethod httpMethod, char* path, int status, ulong response)
+    void write(LogTime* logtime, HttpMethod httpMethod, char* path, int status, size_t response)
     {
         import atlant: accesslog;
         import core.stdc.stdio;

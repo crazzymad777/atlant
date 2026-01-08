@@ -8,13 +8,21 @@ import atlant.cache.gem;
 
 struct HashTable
 {
-    private ulong count;
+    private size_t mask = 1;
+    private size_t size;
     private int* capacity;
     this(TreeNode* root)
     {
         import core.stdc.stdlib;
-        count = root.childsNumber + 1; // +1 for root itself
-        buckets = Array!(Bucket*)(count);
+        size_t count = root.childsNumber + 1; // +1 for root itself
+        size = 1;
+        mask = 1;
+        while (size < count)
+        {
+            mask |= size;
+            size = size << 1;
+        }
+        buckets = Array!(Bucket*)(size);
 
         capacity = fillCapacity(root);
         capacity[findBucketIndex(root.uriPath.hashOf())]++;
@@ -86,8 +94,8 @@ struct HashTable
     {
         import core.stdc.stdlib;
         import core.stdc.string;
-        int *bucketCapacity = cast(int*) malloc(int.sizeof * count);
-        memset(bucketCapacity, 0, int.sizeof * count);
+        int *bucketCapacity = cast(int*) malloc(int.sizeof * size);
+        memset(bucketCapacity, 0, int.sizeof * size);
 
         capacity = bucketCapacity;
         fillCapacityNode(root);
@@ -124,7 +132,7 @@ struct HashTable
 
 	uint findBucketIndex(uint number)
 	{
-        uint rem = number%count;
+        uint rem = number & mask;
         return rem;
 	}
 
@@ -145,7 +153,7 @@ struct HashTable
 
     void show()
     {
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < size; i++)
         {
             auto bucket = getBucketByIndex(i);
             if (bucket !is null)
@@ -157,7 +165,7 @@ struct HashTable
 
     void drop()
     {
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < size; i++)
         {
             auto bucket = getBucketByIndex(i);
             if (bucket !is null)

@@ -33,99 +33,28 @@ struct ServerInstance
 
     int tryFamily(int V = 6)()
     {
-        import core.sys.posix.sys.socket;
-        family = V == 6 ? AF_INET6 : AF_INET;
-        import core.sys.posix.netinet.in_;
-        import core.sys.posix.unistd;
+        import core.sys.posix.sys.socket: AF_INET6, AF_INET;
+        const af_const = family = V == 6 ? AF_INET6 : AF_INET;
+        family = af_const;
 
-        import core.stdc.string;
-        import core.stdc.stdio;
-        import core.stdc.errno;
+        import core.sys.posix.netinet.in_: sockaddr_in6, inet_pton, sockaddr, sockaddr_in, in6addr_any, htons, htonl, INADDR_ANY;
+        import core.stdc.stdio: printf, perror;
 
-        static if (V == 6)
-        {
         sockaddr_in6 servaddr;
-        }
-        else
-        {
-        sockaddr_in servaddr;
-        }
-
-        int sockfd = socket(family, SOCK_STREAM, 0);
-        if (sockfd == -1)
-        {
-            perror("socket");
-            return -1;
-        }
-
-        int v = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &v, int.sizeof);
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &v, int.sizeof);
-
+        import atlant.net.address;
         bool success = false;
+        success = parse(addr, cast(ushort) port, &servaddr);
 
-        static if (V == 6)
+        if (servaddr.sin6_family == AF_INET)
         {
-        servaddr.sin6_family = cast(ushort) family;
-        servaddr.sin6_port = htons(cast(ushort) port);
-        }
-        else
-        {
-        servaddr.sin_family = cast(ushort) family;
-        servaddr.sin_port = htons(cast(ushort) port);
-        }
-
-        if (addr is null)
-        {
-            static if (V == 6)
-            {
-                servaddr.sin6_addr = in6addr_any;
-            }
-            else
-            {
-                servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-            }
-            success = true;
-            anyaddr = true;
+            family = AF_INET; // actual family is IPv4
+            translated = true;
+            normalize4to6(&servaddr);
         }
 
         if (!success)
         {
-            static if (V == 6)
-            {
-                if (inet_pton(family, addr, &servaddr.sin6_addr) == 1)
-                {
-                    success = true;
-                }
-            }
-            else
-            {
-                if (inet_pton(family, addr, &servaddr.sin_addr) == 1)
-                {
-                    success = true;
-                }
-            }
-        }
-
-        static if (V == 6)
-        {
-        if (!success)
-        {
-            if (inet_pton(AF_INET, addr, &servaddr.sin6_addr) == 1)
-            {
-                family = AF_INET; // actual family is IPv4
-                translated = true;
-
-                normalize4to6(&servaddr);
-                success = true;
-            }
-        }
-        }
-
-        bool silent = false;
-
-        if (!success)
-        {
+            import core.sys.posix.unistd: getpid, fork;
             import core.sys.posix.netdb;
 
             addrinfo* addrinfo;
@@ -133,19 +62,21 @@ struct ServerInstance
 
             if (result == 0)
             {
+                bool parent = true;
                 int pid;
                 while (addrinfo !is null)
                 {
                     pid = fork();
                     if (pid == 0)
                     {
+                        parent = false;
                         success = true;
-                        silent = true;
 
                         static if (V == 6)
                         {
                             if (addrinfo.ai_family == AF_INET)
                             {
+                                import core.stdc.string: memcpy;
                                 family = AF_INET; // actual family is IPv4
                                 translated = true;
                                 memcpy(&servaddr, &addrinfo.ai_addr, addrinfo.ai_addrlen);
@@ -160,7 +91,7 @@ struct ServerInstance
                     // i++;
                 }
 
-                if (pid != 0)
+                if (parent)
                 {
                     import core.sys.posix.sys.wait;
                     debug if (logpid) printf("%d: wait\n", getpid());
@@ -177,18 +108,13 @@ struct ServerInstance
 
         if (success)
         {
-            if (bind(sockfd, cast(sockaddr*) &servaddr, servaddr.sizeof) != 0)
-            {
-                if (!silent) perror("bind");
-                return -2;
-            }
+            import atlant.net.socket: create;
 
-            if ((listen(sockfd, 0)) != 0)
+            int sockfd = create(af_const, cast(sockaddr*) &servaddr, servaddr.sizeof);
+            if (sockfd == -1)
             {
-                if (!silent) perror("listen");
-                return -2;
+                return -1;
             }
-
             this.sockfd = sockfd;
             return 0;
         }
@@ -204,14 +130,14 @@ struct ServerInstance
         import core.stdc.errno;
 
         int status = tryFamily!6();
-        if (status == -1)
-        {
-            status = tryFamily!4();
-            if (status < 0)
-            {
-                return;
-            }
-        }
+        // if (status == -1)
+        // {
+        //     status = tryFamily!4();
+        //     if (status < 0)
+        //     {
+        //         return;
+        //     }
+        // }
 
         if (status != 0)
         {
@@ -311,12 +237,14 @@ struct Server
                 currentPort = addrNodePort.value;
             }
 
+            bool parent = true;
             import core.stdc.stdio;
             while (addrNode !is null)
             {
                 int pid = fork();
                 if (pid == 0)
                 {
+                    parent = false;
                     instance.addr = addrNode.value;
                     instance.port = currentPort;
                     run_server_instance(cast(void*) &instance);
@@ -335,9 +263,12 @@ struct Server
                 }
             }
 
-            debug if (conf.logpid) printf("%d: wait\n", getpid());
-            while (wait(null) > 0) {}
-            debug if (conf.logpid) printf("%d: continue\n", getpid());
+            if (parent)
+            {
+                debug if (conf.logpid) printf("%d: wait\n", getpid());
+                while (wait(null) > 0) {}
+                debug if (conf.logpid) printf("%d: continue\n", getpid());
+            }
         }
     }
 }
